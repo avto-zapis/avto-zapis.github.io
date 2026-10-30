@@ -1,0 +1,31 @@
+{
+  "id": "/chistomoy-parnas/",
+  "name": "ЧиСтомой",
+  "short_name": "ЧиСтомой",
+  "description": "Автомойка и детейлинг на Парнасе",
+  "lang": "ru",
+  "start_url": "/chistomoy-parnas/",
+  "scope": "/chistomoy-parnas/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0c0f",
+  "theme_color": "#0b0c0f",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
