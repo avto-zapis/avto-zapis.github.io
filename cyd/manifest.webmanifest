@@ -1,0 +1,31 @@
+{
+  "id": "/cyd/",
+  "name": "CYD Detailing",
+  "short_name": "CYD",
+  "description": "Детейлинг-студия: мойка, полировка, керамика, плёнка",
+  "lang": "ru",
+  "start_url": "/cyd/",
+  "scope": "/cyd/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0c0f",
+  "theme_color": "#0b0c0f",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
