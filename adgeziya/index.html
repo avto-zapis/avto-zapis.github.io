@@ -9,7 +9,23 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Адгезия" />
-    <meta name="description" content="Онлайн-запись в детейлинг: выберите услугу и свободное время." />
+    <meta name="description" content="Онлайн-запись: выберите услугу и свободное время." />
+    <script>
+      // цвет, тема и шрифт бизнеса до первой отрисовки: страницу может отдать Service Worker, он не знает, чья она
+      (function () {
+        try {
+          var slug = location.pathname.split('/')[1]
+          var l = JSON.parse(localStorage.getItem('tenant-look:' + slug) || 'null')
+          if (!l) return
+          var r = document.documentElement
+          r.classList.toggle('dark', l.t === 'dark')
+          r.dataset.theme = l.t
+          r.dataset.font = l.f
+          r.style.setProperty('--brand', l.c)
+          r.style.setProperty('--brand-foreground', l.b)
+        } catch (e) {}
+      })()
+    </script>
     
     <title>Адгезия — онлайн-запись</title>
     <link rel="manifest" href="/adgeziya/manifest.webmanifest" />
@@ -18,13 +34,13 @@
     <meta property="og:title" content="Адгезия — онлайн-запись" />
     <meta property="og:description" content="Студия плёнки: бронеплёнка, тонировка, шумоизоляция" />
     <meta property="og:image" content="https://vgiikbkmiihfrvcjdxks.supabase.co/storage/v1/object/public/tenant-photos/76c44c9a-2cc2-4af4-ac76-17f47710ac56/seed-1.jpg?v=mvve7q1y" />
-    <script type="module" crossorigin src="/assets/index-CEU_A16Y.js"></script>
+    <script type="module" crossorigin src="/assets/index-BsQ6vB0O.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/jsx-runtime-ninoEriq.js">
-    <link rel="modulepreload" crossorigin href="/assets/label--UAZXo0E.js">
+    <link rel="modulepreload" crossorigin href="/assets/label-DfJspiga.js">
     <link rel="modulepreload" crossorigin href="/assets/useTooltip-Dl6CWO6X.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-MxnZmrt1.css">
+    <link rel="stylesheet" crossorigin href="/assets/index-Bo16h1qE.css">
   <script id="vite-plugin-pwa:register-sw" src="/registerSW.js" defer></script></head>
   <body>
-    <div id="root"></div>
+    <div id="root"></div>
   </body>
 </html>
