@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Гладь, расчёт натяжного потолка (пример работы)</title>
+<meta name="description" content="Пример калькулятора стоимости на сайте: натяжные потолки, расчёт за минуту и заявка в мессенджер.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#E9EDF2">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231B2A4A'/%3E%3Cpath d='M14 24h36M18 34h28' stroke='%23fff' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#E9EDF2; --panel:#FFFFFF; --ink:#1B2A4A; --sub:#5B6782; --line:#D3D9E3; --soft:#F3F5F8;
+  --cobalt:#2E4FE0; --cobalt-ink:#FFFFFF; --ok:#14804A;
+}
+* { box-sizing:border-box; margin:0; padding:0 }
+body { background:var(--bg); color:var(--ink); font:500 16.5px/1.5 'Manrope', system-ui, sans-serif; -webkit-font-smoothing:antialiased }
+button, input, select { font:inherit; color:inherit }
+button { cursor:pointer }
+:focus-visible { outline:3px solid var(--cobalt); outline-offset:2px; border-radius:10px }
+a { color:inherit }
+.demo-bar { display:flex; justify-content:center; gap:10px; flex-wrap:wrap; padding:8px 16px; background:var(--ink); color:#fff; font-size:14px; text-align:center }
+@media (max-width:760px) { .demo-bar { font-size:12.5px; padding:6px 12px; gap:4px 8px } .demo-bar span { display:none } .demo-bar::before { content:'Пример работы, всё вымышленное.' } }
+.demo-bar a { font-weight:700 }
+
+.top { max-width:1240px; margin:0 auto; padding:20px clamp(16px,4vw,40px) 0; display:flex; align-items:center; gap:16px; justify-content:space-between }
+.logo { display:flex; align-items:center; gap:10px; font-weight:800; font-size:22px; letter-spacing:-.02em; text-decoration:none }
+.logo svg { width:36px; height:36px }
+.top .tel { font-weight:700; text-decoration:none; font-variant-numeric:tabular-nums }
+
+.intro { max-width:1240px; margin:0 auto; padding:34px clamp(16px,4vw,40px) 22px }
+.intro h1 { font-size:clamp(30px,4.4vw,56px); line-height:1.04; letter-spacing:-.035em; font-weight:800; max-width:18ch; text-wrap:balance }
+.intro p { color:var(--sub); margin-top:12px; max-width:52ch }
+
+.calc { max-width:1240px; margin:0 auto; padding:0 clamp(16px,4vw,40px) 56px; display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr); gap:20px; align-items:start }
+@media (max-width:900px) { .calc { grid-template-columns:minmax(0,1fr) } }
+.panel { background:var(--panel); border-radius:24px; padding:clamp(18px,2.6vw,30px) }
+
+/* превью комнаты */
+.room { position:relative; border-radius:18px; overflow:hidden; aspect-ratio:16/8; background:#C9CFD8; margin-bottom:22px }
+.room svg { width:100%; height:100%; display:block }
+.room .tag { position:absolute; left:12px; bottom:12px; background:rgba(255,255,255,.92); border-radius:12px; padding:6px 12px; font-size:14px; font-weight:700 }
+.ceil { transition:fill .35s }
+.shine { transition:opacity .35s }
+@media (prefers-reduced-motion: reduce) { .ceil, .shine { transition:none } }
+
+fieldset { border:0; padding:18px 0; border-top:1px solid var(--line) }
+fieldset:first-of-type { border-top:0; padding-top:0 }
+legend { font-weight:700; font-size:17px; padding:0; margin-bottom:12px; float:left; width:100% }
+legend + * { clear:both }
+.hint { color:var(--sub); font-size:14px; font-weight:500; margin-left:6px }
+
+.area { display:grid; grid-template-columns:1fr auto; gap:16px; align-items:center }
+input[type=range] { width:100%; accent-color:var(--cobalt); height:28px }
+.num { display:flex; align-items:center; border:1.5px solid var(--line); border-radius:14px; padding:0 12px; background:var(--soft) }
+.num input { width:64px; border:0; background:none; padding:10px 0; font-weight:800; font-size:20px; text-align:right; font-variant-numeric:tabular-nums }
+.num input:focus { outline:none }
+.num:focus-within { border-color:var(--cobalt) }
+.num span { color:var(--sub); margin-left:4px }
+
+.seg { display:grid; grid-template-columns:repeat(3,1fr); gap:8px }
+.seg.two { grid-template-columns:repeat(2,1fr) }
+.seg label { position:relative }
+.seg input { position:absolute; opacity:0; inset:0 }
+.seg span { display:block; border:1.5px solid var(--line); border-radius:14px; padding:12px 10px; text-align:center; font-weight:700; line-height:1.2; height:100% }
+.seg small { display:block; font-weight:500; color:var(--sub); font-size:13px; margin-top:3px }
+.seg input:checked + span { border-color:var(--cobalt); background:#EEF1FD; color:var(--cobalt) }
+.seg input:focus-visible + span { outline:3px solid var(--cobalt); outline-offset:2px }
+
+.cnt { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 0 }
+.cnt + .cnt { border-top:1px dashed var(--line) }
+.cnt b { font-weight:700 } .cnt small { display:block; color:var(--sub); font-weight:500; font-size:13.5px }
+.step { display:flex; align-items:center; gap:4px }
+.step button { width:40px; height:40px; border-radius:12px; border:1.5px solid var(--line); background:var(--panel); font-size:20px; font-weight:700; line-height:1 }
+.step button:hover { border-color:var(--cobalt); color:var(--cobalt) }
+.step output { min-width:40px; text-align:center; font-weight:800; font-size:18px; font-variant-numeric:tabular-nums }
+
+/* итог */
+.sum { position:sticky; top:16px }
+.sum .big { font-size:clamp(38px,5vw,58px); font-weight:800; letter-spacing:-.04em; line-height:1; font-variant-numeric:tabular-nums; margin:6px 0 4px }
+.sum .lbl { color:var(--sub); font-weight:600 }
+.rows { margin:18px 0; display:grid; gap:8px; font-size:15px }
+.rows div { display:flex; justify-content:space-between; gap:12px }
+.rows dd { font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap }
+.rows dt { color:var(--sub) }
+.cond { font-size:13.5px; color:var(--sub); border-top:1px solid var(--line); padding-top:12px }
+
+form { margin-top:22px; display:grid; gap:12px }
+form h2 { font-size:20px; letter-spacing:-.02em }
+.f label { display:block; font-weight:700; font-size:14.5px; margin-bottom:6px }
+.f input { width:100%; border:1.5px solid var(--line); border-radius:14px; padding:12px 14px; background:var(--soft); font-size:16px }
+.f input:focus { outline:none; border-color:var(--cobalt); background:#fff }
+.f .err { color:#B42318; font-size:14px; margin-top:4px; display:none }
+.f.bad input { border-color:#B42318 } .f.bad .err { display:block }
+.msgr { grid-template-columns:repeat(3,1fr) }
+.go { border:0; border-radius:16px; padding:16px; background:var(--cobalt); color:var(--cobalt-ink); font-weight:800; font-size:17px }
+.go:hover { background:#2440BF }
+.privacy { font-size:13px; color:var(--sub) }
+
+.done { display:none; margin-top:22px }
+.done.show { display:block; animation:in .3s ease-out both }
+@keyframes in { from { opacity:0; transform:translateY(8px) } }
+@media (prefers-reduced-motion: reduce) { .done.show { animation:none } }
+.done h2 { font-size:22px; letter-spacing:-.02em; color:var(--ok) }
+.done > p { color:var(--sub); margin:6px 0 14px }
+.tgmsg { background:#E3EAF7; border-radius:16px; padding:14px; }
+.tgmsg .who { font-size:13px; font-weight:700; color:var(--cobalt); margin-bottom:6px }
+.tgmsg .b { background:#fff; border-radius:14px 14px 14px 6px; padding:10px 12px; font-size:14.5px; line-height:1.5; white-space:pre-line }
+.again { margin-top:12px; border:1.5px solid var(--line); background:none; border-radius:14px; padding:10px 14px; font-weight:700 }
+.mbar { display:none }
+@media (max-width:900px) {
+  .mbar { display:flex; position:fixed; left:12px; right:12px; bottom:calc(12px + env(safe-area-inset-bottom)); z-index:5; align-items:center; justify-content:space-between; gap:12px; background:var(--ink); color:#fff; border-radius:18px; padding:10px 10px 10px 18px; text-decoration:none; box-shadow:0 12px 30px -10px rgba(27,42,74,.55); transition:transform .25s, opacity .25s }
+  .mbar b { font-size:22px; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:-.02em }
+  .mbar small { display:block; font-size:12.5px; opacity:.75; font-weight:600 }
+  .mbar span.go2 { background:var(--cobalt); border-radius:12px; padding:10px 14px; font-weight:800; font-size:15px }
+  .mbar.off { transform:translateY(140%); opacity:0; pointer-events:none }
+  body { padding-bottom:84px }
+}
+.foot { max-width:1240px; margin:0 auto; padding:0 clamp(16px,4vw,40px) 40px; color:var(--sub); font-size:14px }
+</style>
+</head>
+<body>
+<div class="demo-bar"><span>Пример работы. Компания «Гладь» вымышленная, цены условные, заявки никуда не уходят.</span> <a href="../nish/">Сделано в Nish Studio</a></div>
+
+<header class="top">
+  <a class="logo" href="#"><svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#1B2A4A"/><path d="M14 24h36M18 34h28" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg>Гладь</a>
+  <span class="tel">Натяжные потолки</span>
+</header>
+
+<section class="intro">
+  <h1>Сколько стоит ваш потолок, узнаете за минуту</h1>
+  <p>Укажите площадь, полотно и светильники. Цена считается сразу, а расчёт можно отправить себе и мастеру в мессенджер.</p>
+</section>
+
+<main class="calc">
+  <div class="panel">
+    <div class="room" aria-hidden="true">
+      <svg viewBox="0 0 800 400" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <linearGradient id="wall" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#DCE1E8"/><stop offset="1" stop-color="#C3CAD4"/></linearGradient>
+          <linearGradient id="gl" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".85"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+          <radialGradient id="lamp"><stop offset="0" stop-color="#FFF6D8"/><stop offset=".3" stop-color="#FFE9A8" stop-opacity=".7"/><stop offset="1" stop-color="#FFE9A8" stop-opacity="0"/></radialGradient>
+        </defs>
+        <rect width="800" height="400" fill="url(#wall)"/>
+        <polygon points="0,0 800,0 640,120 160,120" class="ceil" id="ceil" fill="#F7F8FA"/>
+        <polygon points="0,0 800,0 640,120 160,120" class="shine" id="shine" fill="url(#gl)" opacity="0" transform="skewX(-18) translate(120 0)"/>
+        <polygon points="0,0 160,120 160,330 0,400" fill="#CBD1DA"/>
+        <polygon points="800,0 640,120 640,330 800,400" fill="#BAC2CD"/>
+        <polygon points="160,330 640,330 800,400 0,400" fill="#9FA8B5"/>
+        <rect x="160" y="120" width="480" height="210" fill="#D5DAE2"/>
+        <rect x="430" y="170" width="140" height="110" rx="4" fill="#B9C9DD"/>
+        <path d="M500 170v110M430 225h140" stroke="#D5DAE2" stroke-width="5"/>
+        <rect x="210" y="262" width="180" height="56" rx="10" fill="#8C97A6"/>
+        <rect x="222" y="240" width="156" height="34" rx="10" fill="#A3ADBB"/>
+        <g id="lamps"></g>
+        <g id="chand"></g>
+      </svg>
+      <span class="tag" id="tag">Матовый, белый</span>
+    </div>
+
+    <fieldset>
+      <legend>Площадь потолка <span class="hint">обычно равна площади пола</span></legend>
+      <div class="area">
+        <input type="range" id="areaR" min="5" max="80" step="1" value="18" aria-label="Площадь в квадратных метрах">
+        <label class="num"><input type="number" id="areaN" min="5" max="200" value="18" inputmode="numeric" aria-label="Площадь, м²"><span>м²</span></label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Полотно</legend>
+      <div class="seg" role="radiogroup">
+        <label><input type="radio" name="tex" value="mat" checked><span>Матовое<small>как побелка</small></span></label>
+        <label><input type="radio" name="tex" value="sat"><span>Сатин<small>мягкий блеск</small></span></label>
+        <label><input type="radio" name="tex" value="gl"><span>Глянец<small>отражает свет</small></span></label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Цвет</legend>
+      <div class="seg two">
+        <label><input type="radio" name="col" value="white" checked><span>Белый</span></label>
+        <label><input type="radio" name="col" value="color"><span>Цветной<small>по каталогу</small></span></label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Свет и детали</legend>
+      <div class="cnt"><div><b>Точечные светильники</b><small>с установкой</small></div><div class="step" data-k="spots"><button type="button" aria-label="Меньше светильников">−</button><output>4</output><button type="button" aria-label="Больше светильников">+</button></div></div>
+      <div class="cnt"><div><b>Люстры</b><small>закладная и подвес</small></div><div class="step" data-k="chand"><button type="button" aria-label="Меньше люстр">−</button><output>1</output><button type="button" aria-label="Больше люстр">+</button></div></div>
+      <div class="cnt"><div><b>Углы сверх четырёх</b><small>для комнат сложной формы</small></div><div class="step" data-k="corners"><button type="button" aria-label="Меньше углов">−</button><output>0</output><button type="button" aria-label="Больше углов">+</button></div></div>
+    </fieldset>
+  </div>
+
+  <aside class="panel sum" id="sum" aria-labelledby="sum-h">
+    <p class="lbl" id="sum-h">Ваш потолок под ключ</p>
+    <p class="big" id="total" aria-live="polite">0 ₽</p>
+    <dl class="rows" id="rows"></dl>
+    <p class="cond">Замер бесплатный. Точную цену мастер назовёт после замера.</p>
+
+    <form id="form" novalidate>
+      <h2>Отправить расчёт в мессенджер</h2>
+      <div class="f" id="fName"><label for="name">Имя</label><input id="name" autocomplete="given-name" maxlength="40"><p class="err">Напишите, как к вам обращаться</p></div>
+      <div class="f" id="fPhone"><label for="phone">Телефон</label><input id="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+7 900 000-00-00"><p class="err">Нужно 10 или 11 цифр</p></div>
+      <div class="f"><label id="mLbl">Куда прислать</label>
+        <div class="seg msgr" role="radiogroup" aria-labelledby="mLbl">
+          <label><input type="radio" name="m" value="Telegram" checked><span>Telegram</span></label>
+          <label><input type="radio" name="m" value="Max"><span>Max</span></label>
+          <label><input type="radio" name="m" value="ВК"><span>ВК</span></label>
+        </div>
+      </div>
+      <button class="go" type="submit">Получить расчёт</button>
+      <p class="privacy">Нажимая кнопку, вы соглашаетесь на обработку данных для связи с вами.</p>
+    </form>
+
+    <div class="done" id="done" role="status">
+      <h2>Расчёт отправлен</h2>
+      <p>Мастер напишет вам и предложит время замера. Вот что он получил:</p>
+      <div class="tgmsg"><div class="who">Бот «Гладь», заявки</div><div class="b" id="owner"></div></div>
+      <button class="again" type="button" id="again">Посчитать ещё раз</button>
+    </div>
+  </aside>
+</main>
+<a class="mbar" id="mbar" href="#sum"><span><small>Ваш потолок</small><b id="total2">0 ₽</b></span><span class="go2">Отправить расчёт</span></a>
+<p class="foot">Калькулятор можно сделать для любого дела с понятной ценой: ремонт, окна, уборка, печать, доставка.</p>
+
+<script>
+(function () {
+  var P = { base: { mat: 650, sat: 750, gl: 850 }, color: 150, spot: 450, chand: 900, corner: 200, minimum: 6000 }
+  var TEX = { mat: 'Матовое', sat: 'Сатин', gl: 'Глянец' }
+  var CEIL = { white: { mat: '#F7F8FA', sat: '#F2F4F8', gl: '#EEF2F8' }, color: { mat: '#C9D6F2', sat: '#B9C9EF', gl: '#A9BDF0' } }
+  var st = { area: 18, tex: 'mat', col: 'white', spots: 4, chand: 1, corners: 0 }
+  var LIM = { spots: [0, 30], chand: [0, 5], corners: [0, 12] }
+  var $ = function (id) { return document.getElementById(id) }
+  var rub = function (n) { return Math.round(n).toLocaleString('ru-RU').replace(/,/g, ' ') + ' ₽' }
+
+  function calc() {
+    var r = [], a = st.area
+    r.push(['Полотно ' + TEX[st.tex].toLowerCase() + ', ' + a + ' м²', a * P.base[st.tex]])
+    if (st.col === 'color') r.push(['Цветное полотно', a * P.color])
+    if (st.spots) r.push(['Светильники, ' + st.spots + ' шт.', st.spots * P.spot])
+    if (st.chand) r.push(['Люстры, ' + st.chand + ' шт.', st.chand * P.chand])
+    if (st.corners) r.push(['Доп. углы, ' + st.corners + ' шт.', st.corners * P.corner])
+    var t = r.reduce(function (s, x) { return s + x[1] }, 0)
+    if (t < P.minimum) { r.push(['До минимального заказа', P.minimum - t]); t = P.minimum }
+    return { rows: r, total: t }
+  }
+  function draw() {
+    var c = calc()
+    $('total').textContent = rub(c.total); $('total2').textContent = rub(c.total)
+    $('rows').innerHTML = c.rows.map(function (x) { return '<div><dt>' + x[0] + '</dt><dd>' + rub(x[1]) + '</dd></div>' }).join('')
+    $('ceil').setAttribute('fill', CEIL[st.col][st.tex])
+    $('shine').setAttribute('opacity', st.tex === 'gl' ? .9 : st.tex === 'sat' ? .4 : 0)
+    $('tag').textContent = TEX[st.tex] + ', ' + (st.col === 'white' ? 'белый' : 'цветной')
+    var L = '', n = Math.min(st.spots, 12)
+    for (var i = 0; i < n; i++) {
+      var row = i % 2, k = Math.floor(i / 2), cols = Math.ceil(n / 2)
+      var t = cols === 1 ? .5 : k / (cols - 1)
+      var y = row ? 92 : 32, x = row ? 220 + t * 360 : 120 + t * 560
+      L += '<ellipse cx="' + x + '" cy="' + (y + 30) + '" rx="46" ry="34" fill="url(#lamp)"/><ellipse cx="' + x + '" cy="' + y + '" rx="9" ry="4" fill="#FFFBEA" stroke="#C9CFD8"/>'
+    }
+    $('lamps').innerHTML = L
+    var C = ''
+    for (var j = 0; j < st.chand; j++) {
+      var cx = st.chand === 1 ? 400 : 260 + j * (280 / (st.chand - 1))
+      C += '<line x1="' + cx + '" y1="62" x2="' + cx + '" y2="112" stroke="#8C97A6" stroke-width="2"/><path d="M' + (cx - 26) + ' 132 Q' + cx + ' 100 ' + (cx + 26) + ' 132 Z" fill="#F4E9C8"/><ellipse cx="' + cx + '" cy="150" rx="60" ry="30" fill="url(#lamp)"/>'
+    }
+    $('chand').innerHTML = C
+    document.querySelectorAll('.step').forEach(function (s) { s.querySelector('output').textContent = st[s.dataset.k] })
+  }
+
+  function setArea(v, from) {
+    v = Math.max(5, Math.min(200, Math.round(+v || 0)))
+    st.area = v
+    if (from !== 'r') $('areaR').value = Math.min(80, v)
+    if (from !== 'n') $('areaN').value = v
+    draw()
+  }
+  $('areaR').addEventListener('input', function () { setArea(this.value, 'r') })
+  $('areaN').addEventListener('change', function () { setArea(this.value) })
+  $('areaN').addEventListener('input', function () { if (+this.value >= 5) setArea(this.value, 'n') })
+  document.querySelectorAll('input[name=tex],input[name=col]').forEach(function (i) { i.addEventListener('change', function () { st[i.name] = i.value; draw() }) })
+  document.querySelectorAll('.step').forEach(function (s) {
+    var k = s.dataset.k, b = s.querySelectorAll('button')
+    b[0].onclick = function () { st[k] = Math.max(LIM[k][0], st[k] - 1); draw() }
+    b[1].onclick = function () { st[k] = Math.min(LIM[k][1], st[k] + 1); draw() }
+  })
+
+  $('form').addEventListener('submit', function (e) {
+    e.preventDefault()
+    var name = $('name').value.trim(), d = $('phone').value.replace(/\D/g, '')
+    $('fName').classList.toggle('bad', !name)
+    var okP = d.length >= 10 && d.length <= 11
+    $('fPhone').classList.toggle('bad', !okP)
+    if (!name) return $('name').focus()
+    if (!okP) return $('phone').focus()
+    if (d.length === 10) d = '7' + d
+    if (d[0] === '8') d = '7' + d.slice(1)
+    var ph = '+' + d[0] + ' ' + d.slice(1, 4) + ' ' + d.slice(4, 7) + '-' + d.slice(7, 9) + '-' + d.slice(9, 11)
+    var c = calc(), m = document.querySelector('input[name=m]:checked').value
+    var esc = function (s) { return s.replace(/[&<>]/g, function (x) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[x] }) }
+    $('owner').innerHTML = '<b>Новый расчёт с сайта</b>\n' + esc(name) + ', ' + ph + '\nНаписать в ' + m + '\n\n' + TEX[st.tex] + ', ' + (st.col === 'white' ? 'белое' : 'цветное') + ', ' + st.area + ' м²\nСветильники: ' + st.spots + ', люстры: ' + st.chand + (st.corners ? ', доп. углы: ' + st.corners : '') + '\n<b>Итого: ' + rub(c.total) + '</b>'
+    $('form').hidden = true
+    $('done').classList.add('show')
+    $('done').querySelector('h2').setAttribute('tabindex', '-1'); $('done').querySelector('h2').focus()
+  })
+  $('again').onclick = function () { $('done').classList.remove('show'); $('form').hidden = false; $('name').focus() }
+  draw()
+  if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { $('mbar').classList.toggle('off', e[0].isIntersecting) }, { threshold: .15 }).observe($('sum'))
+})()
+</script>
+</body>
+</html>

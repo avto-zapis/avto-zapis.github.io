@@ -75,7 +75,13 @@ a:focus-visible, button:focus-visible { outline:3px solid var(--amber); outline-
 .phone { position:absolute; width:var(--pw); left:var(--px); top:var(--py); background:#0A0C11; border-radius:calc(var(--pw) * .15); padding:calc(var(--pw) * .035);
   box-shadow: 0 60px 90px -30px rgba(0,0,0,.85), 0 30px 60px -20px rgba(0,0,0,.6), inset 0 0 0 1.5px #3E4352, inset 0 0 0 4px #0A0C11, inset 0 0 0 5px #23262F }
 .phone .scr { position:relative; border-radius:calc(var(--pw) * .118); overflow:hidden; aspect-ratio:1170/1992; background:#fff }
-.phone .scr img { position:absolute; left:0; top:8.5%; width:100%; height:91.5%; object-fit:cover; object-position:top }
+.phone .scr img { position:absolute; left:0; top:8.5%; width:100%; height:91.5%; object-fit:cover; object-position:top; opacity:0; transition:opacity .7s ease }
+.phone .scr img.on { opacity:1 }
+.toast .tx, .toast .ico svg { transition:opacity .35s ease, transform .35s ease }
+.toast.swap .tx, .toast.swap .ico svg { opacity:0; transform:translateY(4px) }
+.toast b em { font-style:normal; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.toast .tx { min-width:0; flex:1 }
+@media (prefers-reduced-motion: reduce) { .phone .scr img, .toast .tx, .toast .ico svg { transition:none } }
 .phone .scr:before { content:''; position:absolute; top:3.2%; left:50%; width:30%; height:4.2%; transform:translateX(-50%); background:#0A0C11; border-radius:999px; z-index:2 }
 /* блик на стекле телефона */
 .phone .scr:after { content:''; position:absolute; inset:0; background:linear-gradient(115deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,0) 32%); pointer-events:none }
@@ -116,7 +122,7 @@ a:focus-visible, button:focus-visible { outline:3px solid var(--amber); outline-
   .hero { --wt:92px; --W:calc(100vw - 2 * var(--pad)); --f1:calc(var(--W) / 3.02); --f2:calc(var(--W) / 4.62);
           min-height:auto; grid-template-rows:auto auto;
           --pw:min(37vw, 230px); --px:calc(100% - var(--pw) - 14px); --py:calc(var(--wt) + var(--f1) * .88 + var(--f2) * .88 * .64);
-          --tw:min(64vw, 250px); --tx:14px; --ty:calc(var(--py) + var(--pw) * 1.42) }
+          --tw:min(70vw, 272px); --tx:14px; --ty:calc(var(--py) + var(--pw) * 1.42) }
   .word h1 { line-height:.88 }
   .word h1 span { display:block }
   .word h1 span:first-child { font-size:var(--f1) }
@@ -216,7 +222,15 @@ a:focus-visible, button:focus-visible { outline:3px solid var(--amber); outline-
 }
 
 /* ---------- 5. работы ---------- */
-.works { display:grid; gap:clamp(56px, 7vw, 96px); margin-top:clamp(36px, 4.5vw, 64px) }
+.chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:26px }
+.chip { text-decoration:none; padding:10px 16px; min-height:44px; display:inline-flex; align-items:center; border-radius:999px; background:rgba(255,255,255,.06); box-shadow:inset 0 0 0 1px var(--edge); font-size:15px; font-weight:500 }
+.chip:hover { background:rgba(255,255,255,.1) }
+.wgroup { margin-top:clamp(56px, 7vw, 96px); scroll-margin-top:96px }
+.wg-head { padding-top:22px; border-top:1px solid var(--line) }
+.wg-head h3 { font-size:clamp(26px, 2.8vw, 38px) }
+.wg-head p { color:var(--muted); margin-top:10px; max-width:60ch }
+.works { display:grid; gap:clamp(56px, 7vw, 96px); margin-top:clamp(32px, 4vw, 56px) }
+.work h4 { font:600 clamp(22px, 2vw, 28px)/1.15 'Unbounded', sans-serif; letter-spacing:-0.025em }
 .work { display:grid; gap:clamp(28px, 4vw, 64px); align-items:center }
 .work .kind { color:var(--muted); margin-top:8px }
 .work ul { list-style:none; display:grid; gap:10px; margin-top:20px }
@@ -246,17 +260,21 @@ a:focus-visible, button:focus-visible { outline:3px solid var(--amber); outline-
 .devices .ph .sc img { position:absolute; left:0; top:7%; width:100%; height:93%; object-fit:cover; object-position:top }
 
 /* ---------- 6. цена ---------- */
-.price-card { margin-top:clamp(36px, 5vw, 64px); padding:clamp(28px, 4vw, 56px); display:grid; gap:32px }
-.price-card .num { font:700 clamp(56px, 9vw, 120px)/.95 'Unbounded', sans-serif; letter-spacing:-0.05em }
-.price-card .num small { font-size:.42em; letter-spacing:-0.02em; color:var(--muted); font-weight:600 }
-.price-card .cond { margin-top:14px; font-size:clamp(18px, 1.6vw, 22px) }
-.price-card .cond b { color:var(--amber); font-weight:600 }
-.price-card ul { list-style:none; display:grid; gap:12px }
-.price-card li { display:flex; gap:12px; align-items:flex-start }
-.price-card li svg { width:20px; height:20px; flex:none; margin-top:3px; color:var(--paper) }
-.price-other { margin-top:16px; padding:22px 26px; display:flex; flex-wrap:wrap; gap:8px 24px; justify-content:space-between; align-items:center }
-.price-other span { color:var(--muted) }
-@media (min-width:900px) { .price-card { grid-template-columns:1fr 1fr; align-items:center; column-gap:64px } .price-card .btn { justify-self:start } }
+.prices { display:grid; gap:16px; margin-top:clamp(32px, 4.5vw, 56px) }
+.pcard { padding:clamp(24px, 2.4vw, 32px); display:flex; flex-direction:column; gap:10px }
+.pcard p { color:var(--muted) }
+.pcard .pv { font:600 clamp(18px, 1.6vw, 21px)/1.2 'Unbounded', sans-serif; letter-spacing:-0.02em; color:var(--paper); margin-bottom:4px }
+.pcard .pv.big { font-size:clamp(44px, 5vw, 64px); letter-spacing:-0.05em; line-height:1 }
+.pcard .btn { align-self:flex-start; margin-top:auto; min-height:46px; font-size:16px }
+.pcard > p:last-of-type { margin-bottom:14px }
+.pcard.main { box-shadow:inset 0 0 0 1.5px rgba(255,178,63,.55), 0 30px 60px -36px rgba(0,0,0,.7) }
+.pcard .tag { align-self:flex-start; font-size:14px; padding:6px 12px; border-radius:999px; background:var(--amber); color:var(--amber-ink); font-weight:600 }
+.pcard ul { list-style:none; display:grid; gap:8px; margin:6px 0 4px }
+.pcard li { display:flex; gap:10px; align-items:flex-start }
+.pcard li svg { width:18px; height:18px; flex:none; margin-top:4px; color:var(--amber) }
+.pcard .cond b { color:var(--amber); font-weight:600 }
+@media (min-width:700px) { .prices { grid-template-columns:repeat(2, 1fr) } }
+@media (min-width:1100px) { .prices { grid-template-columns:repeat(3, 1fr) } }
 
 /* ---------- 7. обо мне ---------- */
 .about { display:grid; gap:clamp(28px, 4vw, 64px); margin-top:clamp(36px, 5vw, 64px) }
@@ -337,12 +355,12 @@ footer.foot .wrap { display:flex; flex-wrap:wrap; gap:8px 24px; justify-content:
       <h1 id="hero-title" aria-label="Nish Studio: сайты, боты и автоматизация для любого бизнеса с помощью ИИ"><span>NISH</span> <span>STUDIO</span></h1>
     </div>
     <div class="layer subject" data-depth="1" aria-hidden="true">
-      <div class="phone"><div class="scr"><img src="img/hero-norde-home.webp" alt="" width="600" height="1022" fetchpriority="high"></div></div>
+      <div class="phone"><div class="scr"><img class="on" src="img/hero-norde-home.webp" alt="" width="600" height="1022" fetchpriority="high"><img src="img/hero-vintik.webp" alt="" width="600" height="1022" decoding="async"><img src="img/hero-glad.webp" alt="" width="600" height="1022" decoding="async"><img src="img/hero-mokryi-list.webp" alt="" width="600" height="1022" decoding="async"></div></div>
     </div>
     <div class="layer notice" data-depth="1.6">
-      <div class="toast" role="img" aria-label="Пример уведомления: новая запись в салон Норде, женская стрижка, пятница, 16:00">
+      <div class="toast" id="toast" role="img" aria-label="Пример уведомления: новая запись в салон Норде, стрижка, пятница, 16:00">
         <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#2A1A02" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/><path d="m9 15 2 2 4-4"/></svg></div>
-        <div><b>Новая запись · Норде <small>сейчас</small></b><span>Стрижка, пт 16:00</span></div>
+        <div class="tx"><b><em id="toast-t">Новая запись</em> <small>сейчас</small></b><span id="toast-s">Норде: стрижка, пт 16:00</span></div>
       </div>
     </div>
     <div class="stagefill" aria-hidden="true"></div>
@@ -444,21 +462,21 @@ footer.foot .wrap { display:flex; flex-wrap:wrap; gap:8px 24px; justify-content:
     <div class="glow" style="left:30%; top:30%" aria-hidden="true"></div>
     <div class="wrap">
       <h2 id="works-h" data-reveal>Работы</h2>
-      <p class="sub" data-reveal>Готовый продукт: сайты с онлайн-записью. Здесь примеры для салонов и детейлинга, так же работает для любого дела по записи. Можно записаться как клиент и зайти в кабинет владельца.</p>
-      <div class="works">
+      <p class="sub" data-reveal>Примеры по типам. Всё можно открыть и попробовать: записаться, поговорить с ботом, посчитать цену, оставить заявку.</p>
+      <nav class="chips" aria-label="Типы работ" data-reveal><a class="chip" href="#w-booking">Сайты с онлайн-записью</a><a class="chip" href="#w-bots">Боты</a><a class="chip" href="#w-calcs">Калькуляторы</a><a class="chip" href="#w-landings">Лендинги</a></nav>
+      <div class="wgroup" id="w-booking">
+        <div class="wg-head" data-reveal><h3>Сайты с онлайн-записью</h3><p>Готовый продукт за 3500 ₽. Клиент сам выбирает услугу и время, владельцу приходит уведомление. Можно записаться как клиент и зайти в кабинет владельца.</p></div>
+        <div class="works">
         <article class="work" data-reveal>
           <div class="devices" aria-hidden="true">
             <div class="laptop"><div class="lid"><div class="sc"><img src="img/w-norde-pc.webp" alt="" width="1200" height="750" loading="lazy" decoding="async"></div></div><div class="base"></div></div>
             <div class="ph"><div class="sc"><img src="img/w-norde-phone.webp" alt="" width="420" height="715" loading="lazy" decoding="async"></div></div>
           </div>
           <div>
-            <h3>Норде</h3>
+            <h4>Норде</h4>
             <p class="kind">Премиум-салон волос. Пример работы</p>
             <ul><li>Большое фото, история салона и прайс строками: нажал на услугу и выбрал время</li><li>Запись к конкретному мастеру из его карточки</li><li>Перенос записи из «Моих записей», владельцу приходит уведомление</li></ul>
-            <div class="acts">
-              <a class="btn light" href="https://avto-zapis.github.io/norde/" target="_blank" rel="noopener">Открыть сайт <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>
-              <a class="btn ghost" href="https://avto-zapis.github.io/norde/admin" target="_blank" rel="noopener">Кабинет владельца (демо) <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>
-            </div>
+            <div class="acts"><a class="btn light" href="https://avto-zapis.github.io/norde/" target="_blank" rel="noopener">Открыть <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a><a class="btn ghost" href="https://avto-zapis.github.io/norde/admin" target="_blank" rel="noopener">Кабинет владельца (демо) <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a></div>
             <p class="demo">В кабинете на странице входа есть кнопка «Подставить»: она заполнит демо-логин и пароль.</p>
           </div>
         </article>
@@ -468,13 +486,10 @@ footer.foot .wrap { display:flex; flex-wrap:wrap; gap:8px 24px; justify-content:
             <div class="ph"><div class="sc"><img src="img/w-mindal-phone.webp" alt="" width="420" height="715" loading="lazy" decoding="async"></div></div>
           </div>
           <div>
-            <h3>Миндаль</h3>
+            <h4>Миндаль</h4>
             <p class="kind">Студия маникюра. Пример работы</p>
             <ul><li>Карточки услуг с фото, ценой «от» и кнопкой записи у каждой</li><li>Гарантия, стерильность по шагам и частые вопросы</li><li>Мастера с фото, к каждому своя запись</li></ul>
-            <div class="acts">
-              <a class="btn light" href="https://avto-zapis.github.io/mindal/" target="_blank" rel="noopener">Открыть сайт <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>
-              <a class="btn ghost" href="https://avto-zapis.github.io/mindal/admin" target="_blank" rel="noopener">Кабинет владельца (демо) <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>
-            </div>
+            <div class="acts"><a class="btn light" href="https://avto-zapis.github.io/mindal/" target="_blank" rel="noopener">Открыть <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a><a class="btn ghost" href="https://avto-zapis.github.io/mindal/admin" target="_blank" rel="noopener">Кабинет владельца (демо) <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a></div>
             <p class="demo">В кабинете на странице входа есть кнопка «Подставить»: она заполнит демо-логин и пароль.</p>
           </div>
         </article>
@@ -484,13 +499,10 @@ footer.foot .wrap { display:flex; flex-wrap:wrap; gap:8px 24px; justify-content:
             <div class="ph"><div class="sc"><img src="img/w-limonad-phone.webp" alt="" width="420" height="715" loading="lazy" decoding="async"></div></div>
           </div>
           <div>
-            <h3>Лимонад</h3>
+            <h4>Лимонад</h4>
             <p class="kind">Яркий молодёжный салон. Пример работы</p>
             <ul><li>Акция месяца: месяц и даты меняются сами</li><li>Колесо фортуны: подарок виден в записи и приходит владельцу в заявке</li><li>Кнопки Telegram, Max и WhatsApp</li></ul>
-            <div class="acts">
-              <a class="btn light" href="https://avto-zapis.github.io/limonad/" target="_blank" rel="noopener">Открыть сайт <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>
-              <a class="btn ghost" href="https://avto-zapis.github.io/limonad/admin" target="_blank" rel="noopener">Кабинет владельца (демо) <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>
-            </div>
+            <div class="acts"><a class="btn light" href="https://avto-zapis.github.io/limonad/" target="_blank" rel="noopener">Открыть <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a><a class="btn ghost" href="https://avto-zapis.github.io/limonad/admin" target="_blank" rel="noopener">Кабинет владельца (демо) <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a></div>
             <p class="demo">В кабинете на странице входа есть кнопка «Подставить»: она заполнит демо-логин и пароль.</p>
           </div>
         </article>
@@ -500,16 +512,68 @@ footer.foot .wrap { display:flex; flex-wrap:wrap; gap:8px 24px; justify-content:
             <div class="ph"><div class="sc"><img src="img/w-cyd-phone.webp" alt="" width="420" height="715" loading="lazy" decoding="async"></div></div>
           </div>
           <div>
-            <h3>CYD Detailing</h3>
+            <h4>CYD Detailing</h4>
             <p class="kind">Детейлинг. Пример работы</p>
             <ul><li>Клиент выбирает класс машины и сразу видит свою цену</li><li>Запись на услугу, день и свободное время без звонка</li><li>Владелец видит расписание по боксам на день и неделю</li></ul>
-            <div class="acts">
-              <a class="btn light" href="https://avto-zapis.github.io/cyd/" target="_blank" rel="noopener">Открыть сайт <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>
-              <a class="btn ghost" href="https://avto-zapis.github.io/cyd/admin" target="_blank" rel="noopener">Кабинет владельца (демо) <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>
-            </div>
+            <div class="acts"><a class="btn light" href="https://avto-zapis.github.io/cyd/" target="_blank" rel="noopener">Открыть <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a><a class="btn ghost" href="https://avto-zapis.github.io/cyd/admin" target="_blank" rel="noopener">Кабинет владельца (демо) <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a></div>
             <p class="demo">В кабинете на странице входа есть кнопка «Подставить»: она заполнит демо-логин и пароль.</p>
           </div>
         </article>
+        </div>
+      </div>
+      <div class="wgroup" id="w-bots">
+        <div class="wg-head" data-reveal><h3>Боты</h3><p>Бот отвечает клиентам на одни и те же вопросы и собирает заявки, пока вы заняты делом.</p></div>
+        <div class="works">
+        <article class="work" data-reveal>
+          <div class="devices" aria-hidden="true">
+            <div class="laptop"><div class="lid"><div class="sc"><img src="img/w-vintik-pc.webp" alt="" width="1200" height="750" loading="lazy" decoding="async"></div></div><div class="base"></div></div>
+            <div class="ph"><div class="sc"><img src="img/w-vintik-phone.webp" alt="" width="420" height="715" loading="lazy" decoding="async"></div></div>
+          </div>
+          <div>
+            <h4>Винтик</h4>
+            <p class="kind">Telegram-бот сервиса ремонта техники. Пример работы</p>
+            <ul><li>Отвечает про цены, сроки и адрес: кнопками и на обычный текст</li><li>Принимает заявку: что сломалось, имя и телефон, проверяет номер</li><li>Заявка сразу приходит владельцу, рядом видно, как она выглядит</li></ul>
+            <div class="acts"><a class="btn light" href="https://avto-zapis.github.io/vintik/" target="_blank" rel="noopener">Открыть <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a></div>
+            <p class="demo">Демо открывается прямо в браузере, ставить ничего не нужно.</p>
+          </div>
+        </article>
+        </div>
+      </div>
+      <div class="wgroup" id="w-calcs">
+        <div class="wg-head" data-reveal><h3>Калькуляторы</h3><p>Клиент сам считает цену на сайте и отправляет расчёт вам. Меньше звонков с вопросом «сколько стоит».</p></div>
+        <div class="works">
+        <article class="work" data-reveal>
+          <div class="devices" aria-hidden="true">
+            <div class="laptop"><div class="lid"><div class="sc"><img src="img/w-glad-pc.webp" alt="" width="1200" height="750" loading="lazy" decoding="async"></div></div><div class="base"></div></div>
+            <div class="ph"><div class="sc"><img src="img/w-glad-phone.webp" alt="" width="420" height="715" loading="lazy" decoding="async"></div></div>
+          </div>
+          <div>
+            <h4>Гладь</h4>
+            <p class="kind">Калькулятор натяжных потолков. Пример работы</p>
+            <ul><li>Цена меняется сразу, пока клиент выбирает площадь, полотно и свет</li><li>Картинка комнаты показывает выбранное полотно и светильники</li><li>Расчёт с контактами уходит мастеру в мессенджер</li></ul>
+            <div class="acts"><a class="btn light" href="https://avto-zapis.github.io/glad/" target="_blank" rel="noopener">Открыть <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a></div>
+            
+          </div>
+        </article>
+        </div>
+      </div>
+      <div class="wgroup" id="w-landings">
+        <div class="wg-head" data-reveal><h3>Лендинги</h3><p>Одна страница про ваш курс, услугу или товар с формой заявки.</p></div>
+        <div class="works">
+        <article class="work" data-reveal>
+          <div class="devices" aria-hidden="true">
+            <div class="laptop"><div class="lid"><div class="sc"><img src="img/w-mokryi-list-pc.webp" alt="" width="1200" height="750" loading="lazy" decoding="async"></div></div><div class="base"></div></div>
+            <div class="ph"><div class="sc"><img src="img/w-mokryi-list-phone.webp" alt="" width="420" height="715" loading="lazy" decoding="async"></div></div>
+          </div>
+          <div>
+            <h4>Мокрый лист</h4>
+            <p class="kind">Лендинг онлайн-курса акварели. Пример работы</p>
+            <ul><li>Программа по неделям и рассказ о преподавателе</li><li>Три тарифа: выбранный тариф сразу попадает в заявку</li><li>Заявка приходит эксперту в Telegram</li></ul>
+            <div class="acts"><a class="btn light" href="https://avto-zapis.github.io/mokryi-list/" target="_blank" rel="noopener">Открыть <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a></div>
+            
+          </div>
+        </article>
+        </div>
       </div>
       <p class="fine">Бренды вымышленные, сделаны для примера. Цены, адреса и контакты в них тоже для примера.</p>
     </div>
@@ -520,23 +584,15 @@ footer.foot .wrap { display:flex; flex-wrap:wrap; gap:8px 24px; justify-content:
     <div class="glow" style="right:0; top:20%" aria-hidden="true"></div>
     <div class="wrap">
       <h2 id="price-h" data-reveal>Цена</h2>
-      <div class="glass price-card" data-reveal>
-        <div>
-          <p class="muted">Сайт с онлайн-записью</p>
-          <p class="num">3500 <small>₽</small></p>
-          <p class="cond"><b>Оплата только если понравится.</b> Не понравился пример, ничего не должны.</p>
-        </div>
-        <div>
-          <ul>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Ваши услуги, цены, мастера и фото</li>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Онлайн-запись и «Мои записи» у клиента</li>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Уведомления о заявках и кабинет владельца</li>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Настройку и установку на телефон делаю я</li>
-          </ul>
-          <a class="btn primary" style="margin-top:28px" href="#contact">Хочу пример для себя</a>
-        </div>
+      <p class="sub" data-reveal>Сайт с онлайн-записью стоит фиксированно. Остальное считаю, когда разберусь в задаче. Пример показываю до оплаты.</p>
+      <div class="prices">
+        <article class="glass pcard main" data-reveal><p class="tag">Готовый продукт</p><h3>Сайт с онлайн-записью</h3><p class="pv big">3500 ₽</p><ul><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Ваши услуги, цены, мастера и фото</li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Запись и «Мои записи» у клиента</li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Уведомления и кабинет владельца</li></ul><p class="cond"><b>Оплата только если понравится.</b></p><a class="btn primary" href="#contact">Хочу пример для себя</a></article>
+        <article class="glass pcard" data-reveal><h3>Telegram-бот</h3><p class="pv">по договорённости</p><p>Ответы на частые вопросы, приём заявок и отправка их вам.</p><a class="btn light" href="#contact">Обсудить задачу</a></article>
+        <article class="glass pcard" data-reveal><h3>Калькулятор на сайт</h3><p class="pv">по договорённости</p><p>Клиент считает цену сам, расчёт приходит вам в мессенджер.</p><a class="btn light" href="#contact">Обсудить задачу</a></article>
+        <article class="glass pcard" data-reveal><h3>Сайт или лендинг</h3><p class="pv">по договорённости</p><p>Для услуги, товара, курса или эксперта, с формой заявки.</p><a class="btn light" href="#contact">Обсудить задачу</a></article>
+        <article class="glass pcard" data-reveal><h3>Автоматизация</h3><p class="pv">по договорённости</p><p>Таблицы, заявки и уведомления, чтобы рутина делалась сама.</p><a class="btn light" href="#contact">Обсудить задачу</a></article>
+        <article class="glass pcard" data-reveal><h3>Веб-приложение или кабинет</h3><p class="pv">по договорённости</p><p>Личный кабинет, учёт заказов, внутренние инструменты.</p><a class="btn light" href="#contact">Обсудить задачу</a></article>
       </div>
-      <div class="glass price-other" data-reveal><b>Сайты и лендинги, боты, автоматизация, веб-приложения, калькуляторы</b><span>по договорённости</span></div>
     </div>
   </section>
 
@@ -547,7 +603,7 @@ footer.foot .wrap { display:flex; flex-wrap:wrap; gap:8px 24px; justify-content:
       <div class="about">
         <div class="about-text" data-reveal>
           <p>Меня зовут Ярослав Кальниш, я из Губкина. Делаю сайты, ботов и автоматизацию для любого бизнеса.</p>
-          <p>Работаю с помощью ИИ, это называют вайб-кодингом. Поэтому получается быстрее и дешевле, чем в обычной студии. Готовый продукт сейчас: сайт с онлайн-записью, примеры выше.</p>
+          <p>Работаю с помощью ИИ, это называют вайб-кодингом. Поэтому получается быстрее и дешевле, чем в обычной студии. Готовый продукт сейчас: сайт с онлайн-записью. Ещё в примерах выше бот, калькулятор и лендинг.</p>
           <p>Всё делаю сам: собираю пример, переделываю по вашим правкам, запускаю и показываю, как пользоваться. Пишите напрямую, без менеджеров.</p>
           <div class="links" style="margin-top:28px"><a class="btn primary" href="https://t.me/Yaroslavnish" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.4 4.3 2.9 11.4c-1.3.5-1.2 1.2-.2 1.5l4.7 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.4l2.3-2.2 4.7 3.5c.9.5 1.5.2 1.7-.8l3.1-14.6c.3-1.3-.5-1.8-1.4-1.5ZM9.6 14.5l8.6-7.8c.4-.3-.1-.5-.6-.2L7.9 13.4"/></svg>Написать в Telegram</a><a class="btn ghost" data-link="max-dm" href="#contact" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.7 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"/></svg>Написать в Max</a><a class="btn ghost" data-link="vk-dm" href="#contact"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.8 18.2C6.6 18.2 3.1 14 3 7h3.1c.1 5.2 2.4 7.4 4.2 7.8V7h2.9v4.5c1.8-.2 3.7-2.2 4.3-4.5h2.9c-.5 2.8-2.5 4.8-4 5.6 1.5.7 3.8 2.5 4.7 5.6h-3.2c-.7-2.1-2.4-3.8-4.7-4v4h-.4Z"/></svg>Написать в ВК</a></div>
         </div>
@@ -576,14 +632,15 @@ footer.foot .wrap { display:flex; flex-wrap:wrap; gap:8px 24px; justify-content:
     <div class="wrap">
       <h2 id="faq-h" data-reveal>Частые вопросы</h2>
       <div class="faq">
-        <details class="glass" data-reveal><summary>Сколько стоит?</summary><p>Сайт с онлайн-записью стоит 3500 ₽. Остальное по договорённости, зависит от задачи.</p></details>
-        <details class="glass" data-reveal><summary>Вы делаете только для салонов?</summary><p>Нет, для любого бизнеса. Салоны и детейлинг в примерах, потому что сайт с онлайн-записью сейчас мой готовый продукт.</p></details>
-        <details class="glass" data-reveal><summary>Что такое вайб-кодинг?</summary><p>Я делаю сайты и ботов вместе с ИИ: он пишет большую часть кода, я ставлю задачу, проверяю и довожу до результата. Поэтому быстрее и дешевле обычной студии.</p></details>
+        <details class="glass" data-reveal><summary>Сколько стоит?</summary><p>Сайт с онлайн-записью 3500 ₽. Остальное по договорённости: цену называю, когда разберусь в задаче.</p></details>
+        <details class="glass" data-reveal><summary>Сколько времени занимает?</summary><p>С ИИ первый пример обычно готов за день-два. Если задача большая, срок скажу заранее, до начала работы.</p></details>
+        <details class="glass" data-reveal><summary>Как проходит работа?</summary><p>Вы описываете задачу. Я делаю пример и присылаю ссылку. Вы смотрите и пишете правки. Если всё нравится, оплачиваете, я запускаю и показываю, как пользоваться.</p></details>
+        <details class="glass" data-reveal><summary>Что нужно от меня?</summary><p>Рассказать своими словами, что нужно, и прислать то, что уже есть: тексты, цены, фото, логотип. Можно просто ссылку на ваш сайт, группу или карточку в 2ГИС.</p></details>
+        <details class="glass" data-reveal><summary>Можно вносить правки?</summary><p>Да. Правлю, пока результат вам не понравится. После запуска тоже можно попросить что-то поменять или добавить.</p></details>
+        <details class="glass" data-reveal><summary>Что будет после запуска?</summary><p>Если что-то перестало работать или нужно поменять текст, цены, фото, пишете мне, я правлю. Новые большие функции обсуждаем отдельно.</p></details>
         <details class="glass" data-reveal><summary>А если не понравится?</summary><p>Ничего не платите. Пример я делаю до разговора о деньгах.</p></details>
-        <details class="glass" data-reveal><summary>Откуда вы возьмёте мои цены и фото?</summary><p>Из 2ГИС, ВК или вашего сайта. Если там чего-то нет, пришлёте сами, я добавлю.</p></details>
-        <details class="glass" data-reveal><summary>Клиенту нужно что-то скачивать?</summary><p>Нет. Он открывает сайт по ссылке и записывается. Если хочет, добавляет его на экран телефона как приложение.</p></details>
-        <details class="glass" data-reveal><summary>Как я узнаю о новой записи?</summary><p>На телефон приходит уведомление. В кабинете владельца видны все заявки и расписание по мастерам.</p></details>
-        <details class="glass" data-reveal><summary>Смогу сам поменять цены и фото?</summary><p>Да, в кабинете владельца. Там же мастера, услуги и рабочие часы.</p></details>
+        <details class="glass" data-reveal><summary>Что такое вайб-кодинг?</summary><p>Я делаю сайты и ботов вместе с ИИ: он пишет большую часть кода, я ставлю задачу, проверяю и довожу до результата. Поэтому быстрее и дешевле обычной студии.</p></details>
+        <details class="glass" data-reveal><summary>Как работает онлайн-запись?</summary><p>Клиент открывает сайт по ссылке и сам выбирает услугу, мастера и свободное время. Скачивать ничего не нужно, сайт можно добавить на экран телефона как приложение. Вам приходит уведомление о каждой записи. В кабинете владельца видно все записи, там же вы сами меняете цены, фото, мастеров и часы работы.</p></details>
         <details class="glass" data-reveal><summary>Вы работаете официально?</summary><p>Да, я самозанятый, ИНН 312733627947. Статус можно проверить на npd.nalog.ru/check-status.</p></details>
       </div>
     </div>
@@ -596,7 +653,7 @@ footer.foot .wrap { display:flex; flex-wrap:wrap; gap:8px 24px; justify-content:
       <h2 id="contact-h" data-reveal>Хотите пример для себя?</h2>
       <div class="glass contact-card" data-reveal>
         <div>
-          <p class="sub" style="margin-top:0">Напишите, чем занимаетесь и что нужно сделать. Если работаете по записи, пришлите ссылку на 2ГИС или ВК: соберу пример с вашими ценами и фото.</p>
+          <p class="sub" style="margin-top:0">Опишите задачу или пришлите ссылку на ваш бизнес. Соберу пример и пришлю ссылку.</p>
           <p class="tg" style="margin-top:20px">@Yaroslavnish</p>
         </div>
         <div>
@@ -646,6 +703,42 @@ Object.keys(LINKS).forEach(function (k) {
   var d = document.querySelector('details.write'); if (!d) return
   document.addEventListener('click', function (e) { if (d.open && !d.contains(e.target)) d.open = false })
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && d.open) { d.open = false; d.querySelector('summary').focus() } })
+})();
+
+// Первый экран: экраны в телефоне и уведомление меняются по кругу
+(function () {
+  var imgs = document.querySelectorAll('.phone .scr img'), toast = document.getElementById('toast'); if (!toast || imgs.length < 2) return
+  var ico = toast.querySelector('.ico'), t = document.getElementById('toast-t'), sub = document.getElementById('toast-s')
+  var I = {
+    cal: '<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/><path d="m9 15 2 2 4-4"/>',
+    bot: '<path d="M21 12a8 8 0 0 1-11.7 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01"/>',
+    calc: '<rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M8.5 7h7M8.5 11.5h.01M12 11.5h.01M15.5 11.5h.01M8.5 15h.01M12 15h.01M15.5 15h.01"/>',
+    form: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/>'
+  }
+  var S = [
+    ['cal', 'Новая запись', 'Норде: стрижка, пт 16:00', 'новая запись в салон Норде, стрижка, пятница, 16:00'],
+    ['bot', 'Новая заявка из бота', 'Винтик: телефон, разбит экран', 'новая заявка из бота сервиса Винтик, телефон, разбит экран'],
+    ['calc', 'Новый расчёт', 'Гладь: потолок 18 м², 14 400 ₽', 'новый расчёт натяжного потолка, 18 квадратных метров, 14 400 рублей'],
+    ['form', 'Новая заявка на курс', 'Мокрый лист: тариф «С проверкой»', 'новая заявка на курс акварели, тариф С проверкой']
+  ]
+  var i = 0, timer = null, hero = document.querySelector('.hero'), seen = true
+  function show(n) {
+    imgs[i].classList.remove('on'); i = n; imgs[i].classList.add('on')
+    toast.classList.add('swap')
+    setTimeout(function () {
+      var x = S[i]
+      ico.querySelector('svg').innerHTML = I[x[0]]; t.textContent = x[1]; sub.textContent = x[2]
+      toast.setAttribute('aria-label', 'Пример уведомления: ' + x[3])
+      toast.classList.remove('swap')
+    }, 350)
+  }
+  function tick() { show((i + 1) % imgs.length) }
+  function run() { if (!timer && seen && !document.hidden) timer = setInterval(tick, 3500) }
+  function stop() { clearInterval(timer); timer = null }
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  document.addEventListener('visibilitychange', function () { document.hidden ? stop() : run() })
+  if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { seen = e[0].isIntersecting; seen ? run() : stop() }).observe(hero)
+  setTimeout(run, 1800)
 })();
 
 // Шапка становится плотной при прокрутке

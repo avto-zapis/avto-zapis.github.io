@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Винтик, бот сервиса ремонта (пример работы)</title>
+<meta name="description" content="Пример Telegram-бота для сервиса ремонта техники: отвечает на частые вопросы, принимает заявку и отправляет её владельцу.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#10261E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2310261E'/%3E%3Ccircle cx='32' cy='32' r='15' fill='none' stroke='%23FFD23F' stroke-width='6'/%3E%3Cpath d='M24 32h16M32 24v16' stroke='%23FFD23F' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=Tektur:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --board:#10261E; --board2:#173329; --trace:#2C5245; --ink:#0E1A15;
+  --paper:#ECF3EE; --muted:#A9BDB3; --signal:#FFD23F; --signal-ink:#2B2300;
+  --chat:#DCE7DF; --bot:#FFFFFF; --me:#D7F5C3; --tg:#2A8BD8; --line:#C6D4CA; --text:#14201A; --sub:#5C6E64;
+  --r:18px;
+}
+* { box-sizing:border-box; margin:0; padding:0 }
+body { background:var(--board); color:var(--paper); font:400 17px/1.5 'Golos Text', system-ui, sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh;
+  background-image:radial-gradient(circle at 1px 1px, rgba(255,255,255,.05) 1px, transparent 0); background-size:22px 22px }
+button, input { font:inherit; color:inherit }
+button { cursor:pointer }
+:focus-visible { outline:3px solid var(--signal); outline-offset:2px; border-radius:10px }
+a { color:inherit }
+
+.demo-bar { display:flex; justify-content:center; gap:10px; flex-wrap:wrap; padding:8px 16px; background:var(--signal); color:var(--signal-ink); font-size:14px; font-weight:500; text-align:center }
+.demo-bar a { font-weight:600 }
+@media (max-width:760px) { .demo-bar { font-size:12.5px; padding:6px 12px; gap:4px 8px } .demo-bar span { display:none } .demo-bar::before { content:'Пример работы, всё вымышленное.' } }
+
+.page { max-width:1320px; margin:0 auto; padding:28px clamp(16px,4vw,48px) 56px; display:grid; gap:28px;
+  grid-template-columns:minmax(0,1fr) minmax(0,420px) minmax(0,360px); grid-template-areas:"copy chat owner"; align-items:start }
+.copy { grid-area:copy; padding-top:8px }
+.chatwrap { grid-area:chat }
+.owner { grid-area:owner }
+@media (max-width:1180px) { .page { grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-areas:"copy copy" "chat owner" } }
+@media (max-width:760px) { .page { grid-template-columns:minmax(0,1fr); grid-template-areas:"chat" "owner" "copy"; padding-top:14px; gap:20px } }
+
+.logo { display:flex; align-items:center; gap:12px; font:700 24px/1 'Tektur', sans-serif; letter-spacing:.01em }
+.logo svg { width:44px; height:44px; flex:none }
+.copy h1 { font:700 clamp(30px,3.4vw,46px)/1.08 'Tektur', sans-serif; margin:26px 0 16px; max-width:15ch; text-wrap:balance }
+.copy > p { color:var(--muted); max-width:46ch }
+.can { list-style:none; margin-top:26px; display:grid; gap:2px; max-width:460px }
+.can li { display:grid; grid-template-columns:28px 1fr; gap:10px; padding:12px 0; border-top:1px solid var(--trace) }
+.can li:last-child { border-bottom:1px solid var(--trace) }
+.can svg { width:22px; height:22px; color:var(--signal); margin-top:2px }
+.can b { display:block; font-weight:600 }
+.can span { color:var(--muted); font-size:15px }
+.note { margin-top:22px; font-size:14px; color:var(--muted) }
+.made { margin-top:10px; font-size:14px; color:var(--muted) }
+
+/* ---------- окно чата ---------- */
+.win { background:var(--chat); color:var(--text); border-radius:var(--r); overflow:hidden; display:flex; flex-direction:column; height:min(720px, calc(100vh - 110px)); min-height:520px;
+  box-shadow:0 0 0 1px rgba(255,255,255,.06), 0 30px 60px -30px rgba(0,0,0,.6) }
+@media (max-width:760px) { .win { height:calc(100svh - 92px); min-height:480px } }
+.win-head { display:flex; align-items:center; gap:12px; padding:12px 16px; background:#fff; border-bottom:1px solid var(--line) }
+.ava { width:42px; height:42px; border-radius:50%; background:var(--board); display:grid; place-items:center; flex:none }
+.ava svg { width:26px; height:26px }
+.win-head b { display:block; font-weight:600; font-size:16px; line-height:1.2 }
+.win-head small { color:#1C6AAE; font-size:13px }
+.restart { margin-left:auto; white-space:nowrap; border:0; background:none; color:var(--sub); font-size:14px; padding:6px 8px; border-radius:8px }
+.restart:hover { background:#EEF3F0; color:var(--text) }
+
+.feed { flex:1; overflow-y:auto; padding:16px 12px 8px; display:flex; flex-direction:column; gap:6px; scroll-behavior:smooth;
+  background-image:radial-gradient(circle at 12px 12px, rgba(16,38,30,.07) 2px, transparent 0); background-size:26px 26px }
+@media (prefers-reduced-motion: reduce) { .feed { scroll-behavior:auto } }
+.day { align-self:center; font-size:12.5px; background:rgba(16,38,30,.32); color:#fff; padding:3px 10px; border-radius:20px; margin:2px 0 8px }
+.msg { max-width:86%; padding:8px 12px 6px; border-radius:16px; font-size:15.5px; line-height:1.42; position:relative; animation:pop .22s ease-out both; white-space:pre-line }
+.msg time { display:block; text-align:right; font-size:11.5px; color:var(--sub); margin-top:2px }
+.msg.bot { align-self:flex-start; background:var(--bot); border-bottom-left-radius:6px }
+.msg.me { align-self:flex-end; background:var(--me); border-bottom-right-radius:6px }
+.msg.me time { color:#4E8A3A }
+.msg b { font-weight:600 }
+.msg .tbl { display:grid; grid-template-columns:1fr auto; gap:2px 14px; margin:6px 0 2px; white-space:normal }
+.msg .tbl span:nth-child(2n) { font-weight:600; text-align:right; font-variant-numeric:tabular-nums }
+.keys { align-self:flex-start; display:grid; grid-template-columns:1fr 1fr; gap:6px; width:min(86%, 340px); animation:pop .22s ease-out both }
+.keys.one { grid-template-columns:1fr }
+.keys button { border:0; background:rgba(16,38,30,.62); color:#fff; border-radius:12px; padding:10px 8px; font-size:14.5px; font-weight:500; line-height:1.25 }
+.keys button:hover { background:rgba(16,38,30,.8) }
+.keys button:disabled { opacity:.45; cursor:default }
+.typing { align-self:flex-start; background:#fff; border-radius:16px; padding:12px 14px; display:flex; gap:4px }
+.typing i { width:7px; height:7px; border-radius:50%; background:#9AABA1; animation:dot 1s infinite }
+.typing i:nth-child(2) { animation-delay:.15s } .typing i:nth-child(3) { animation-delay:.3s }
+@keyframes pop { from { opacity:0; transform:translateY(6px) scale(.98) } }
+@keyframes dot { 50% { transform:translateY(-4px); opacity:.5 } }
+@media (prefers-reduced-motion: reduce) { .msg, .keys { animation:none } .typing i { animation:none } }
+
+.compose { display:flex; gap:8px; padding:10px; background:#fff; border-top:1px solid var(--line) }
+.compose input { flex:1; min-width:0; border:1px solid var(--line); border-radius:22px; padding:10px 16px; background:#F6F9F7; font-size:16px }
+.compose input:focus { outline:none; border-color:var(--tg); background:#fff }
+.compose button { width:44px; height:44px; border-radius:50%; border:0; background:var(--tg); color:#fff; display:grid; place-items:center; flex:none }
+.compose button svg { width:20px; height:20px }
+.compose .err { display:none }
+
+/* ---------- владелец ---------- */
+.owner h2 { font:700 20px/1.2 'Tektur', sans-serif; margin-bottom:6px }
+.owner > p { color:var(--muted); font-size:15px; margin-bottom:14px }
+.inbox { background:var(--board2); border:1px solid var(--trace); border-radius:var(--r); padding:14px; min-height:240px; display:flex; flex-direction:column; gap:10px }
+.empty { margin:auto; text-align:center; color:var(--muted); font-size:15px; max-width:26ch; padding:24px 0 }
+.empty svg { display:block; width:36px; height:36px; margin:0 auto 10px; color:var(--trace) }
+.lead { background:#fff; color:var(--text); border-radius:14px; padding:12px 14px; animation:pop .3s ease-out both; font-size:15px; line-height:1.45 }
+.lead .hd { display:flex; justify-content:space-between; gap:8px; font-weight:600; margin-bottom:4px }
+.lead .hd small { font-weight:400; color:var(--sub) }
+.lead dl { display:grid; grid-template-columns:auto 1fr; gap:1px 10px }
+.lead dt { color:var(--sub) }
+.lead .act { display:flex; gap:6px; margin-top:10px }
+.lead .act button { flex:1; border:0; border-radius:10px; padding:8px; font-size:14px; font-weight:600; background:#E9F0EC; color:var(--text) }
+.lead .act button.take { background:var(--board); color:#fff }
+.lead .act button[aria-pressed="true"] { background:#1E7A47; color:#fff }
+.to-owner { display:none; margin-top:10px; width:100%; border:1px solid var(--trace); background:none; color:var(--paper); border-radius:12px; padding:10px; font-size:15px }
+@media (max-width:760px) { .to-owner.show { display:block } }
+</style>
+</head>
+<body>
+<div class="demo-bar"><span>Пример работы. Сервис «Винтик» вымышленный, цены условные, заявки никуда не уходят.</span> <a href="../nish/">Сделано в Nish Studio</a></div>
+
+<main class="page">
+  <section class="copy" aria-labelledby="h1">
+    <div class="logo"><svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#173329"/><circle cx="32" cy="32" r="15" fill="none" stroke="#FFD23F" stroke-width="6"/><path d="M24 32h16M32 24v16" stroke="#FFD23F" stroke-width="5" stroke-linecap="round"/></svg>Винтик</div>
+    <h1 id="h1">Бот отвечает клиентам, пока мастер чинит</h1>
+    <p>Сервис ремонта телефонов и ноутбуков. Бот в Telegram сам рассказывает про цены, сроки и адрес, принимает заявку и сразу присылает её владельцу. Попробуйте: нажимайте кнопки или пишите в чат.</p>
+    <ul class="can">
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.7 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"/></svg><div><b>Отвечает на частые вопросы</b><span>Цены, сроки, адрес и график. Понимает и кнопки, и обычный текст.</span></div></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg><div><b>Принимает заявку</b><span>Что сломалось, имя и телефон. Проверяет номер, чтобы не было ошибок.</span></div></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><div><b>Отправляет владельцу</b><span>Заявка приходит в Telegram владельцу или в общий чат мастеров.</span></div></li>
+    </ul>
+    <p class="made">Такого бота можно сделать для доставки, ремонта, автосервиса, курсов и любого дела, где клиенты задают одни и те же вопросы.</p>
+  </section>
+
+  <section class="chatwrap" aria-label="Чат с ботом">
+    <div class="win">
+      <div class="win-head">
+        <div class="ava"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="15" fill="none" stroke="#FFD23F" stroke-width="6"/><path d="M24 32h16M32 24v16" stroke="#FFD23F" stroke-width="5" stroke-linecap="round"/></svg></div>
+        <div><b>Винтик, ремонт техники</b><small>бот</small></div>
+        <button class="restart" type="button" id="restart">Начать заново</button>
+      </div>
+      <div class="feed" id="feed" role="log" aria-live="polite" aria-label="Сообщения"></div>
+      <form class="compose" id="compose" autocomplete="off">
+        <label class="sr" for="say" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Сообщение боту</label>
+        <input id="say" placeholder="Напишите сообщение" enterkeyhint="send">
+        <button type="submit" aria-label="Отправить"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12.6 2-12.6 2z"/></svg></button>
+      </form>
+    </div>
+    <button class="to-owner" type="button" id="toOwner">Посмотреть, что получил владелец</button>
+  </section>
+
+  <section class="owner" id="owner" aria-labelledby="owner-h">
+    <h2 id="owner-h">Так заявку видит владелец</h2>
+    <p>Сообщение в Telegram сразу после того, как клиент нажал «Отправить».</p>
+    <div class="inbox" id="inbox" aria-live="polite">
+      <div class="empty" id="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/></svg>Пока пусто. Оставьте заявку в чате, и она появится здесь.</div>
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  var feed = document.getElementById('feed'), form = document.getElementById('compose'), say = document.getElementById('say')
+  var inbox = document.getElementById('inbox'), empty = document.getElementById('empty'), toOwner = document.getElementById('toOwner')
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+  var shot = /[?&]shot=1/.test(location.search)
+  var lead = {}, step = null, queue = Promise.resolve()
+
+  function now() { var d = new Date(); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2) }
+  function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] }) }
+  function down() { feed.scrollTop = feed.scrollHeight }
+  function wait(ms) { return new Promise(function (r) { setTimeout(r, shot || reduce ? 0 : ms) }) }
+
+  function lockKeys() { feed.querySelectorAll('.keys button').forEach(function (b) { b.disabled = true }) }
+  function me(text) { lockKeys(); var m = el('div', 'msg me', esc(text) + '<time>' + now() + '</time>'); feed.appendChild(m); down() }
+  function bot(html, keys, one) {
+    queue = queue.then(function () {
+      var t = el('div', 'typing', '<i></i><i></i><i></i>'); t.setAttribute('aria-hidden', 'true')
+      if (!shot && !reduce) { feed.appendChild(t); down() }
+      return wait(650).then(function () {
+        t.remove()
+        feed.appendChild(el('div', 'msg bot', html + '<time>' + now() + '</time>'))
+        if (keys) {
+          var k = el('div', 'keys' + (one ? ' one' : ''))
+          keys.forEach(function (p) { var b = el('button', '', esc(p[0])); b.type = 'button'; b.onclick = function () { me(p[0]); p[1]() }; k.appendChild(b) })
+          feed.appendChild(k)
+        }
+        down()
+      })
+    })
+    return queue
+  }
+
+  var MENU = function () { return [['Сколько стоит ремонт', price], ['Сколько по времени', time], ['Где вы и когда работаете', where], ['Оставить заявку', start]] }
+  function hello() {
+    feed.innerHTML = '<div class="day">Сегодня</div>'; step = null; lead = {}
+    bot('Здравствуйте! Я бот сервиса «Винтик». Чиним телефоны, планшеты и ноутбуки.\nПодскажу цены и сроки или запишу ваш ремонт.', MENU())
+  }
+  function price() {
+    step = null
+    bot('<b>Примерные цены</b><div class="tbl"><span>Диагностика</span><span>бесплатно</span><span>Замена экрана телефона</span><span>от 2 500 ₽</span><span>Замена аккумулятора</span><span>от 1 500 ₽</span><span>Чистка ноутбука</span><span>от 1 200 ₽</span><span>Замена разъёма зарядки</span><span>от 1 000 ₽</span></div>Точную цену мастер скажет после диагностики.', [['Оставить заявку', start], ['Сколько по времени', time]])
+  }
+  function time() {
+    step = null
+    bot('Диагностика при вас, около 20 минут.\nПростой ремонт, например замену экрана или аккумулятора, делаем в тот же день.\nЕсли детали нужно заказать, срок скажем сразу.', [['Оставить заявку', start], ['Сколько стоит ремонт', price]])
+  }
+  function where() {
+    step = null
+    bot('<b>ул. Примерная, 1</b>, вход со двора.\nПн–Сб 10:00–20:00, воскресенье выходной.\nМожно привезти без записи, но с заявкой мастер подготовит детали заранее.', [['Оставить заявку', start], ['Сколько стоит ремонт', price]])
+  }
+  function start() {
+    step = 'device'
+    bot('Что ремонтируем?', [['Телефон', function () { setDev('Телефон') }], ['Ноутбук', function () { setDev('Ноутбук') }], ['Планшет', function () { setDev('Планшет') }], ['Другое', function () { setDev('Другое') }]])
+  }
+  function setDev(v) {
+    lead.device = v; step = 'issue'
+    bot('Что случилось? Выберите или напишите своими словами.', [['Разбит экран', function () { setIssue('Разбит экран') }], ['Не заряжается', function () { setIssue('Не заряжается') }], ['Не включается', function () { setIssue('Не включается') }], ['Сильно греется', function () { setIssue('Сильно греется') }]])
+  }
+  function setIssue(v) { lead.issue = v; step = 'name'; bot('Понял. Как к вам обращаться?'); say.focus({ preventScroll: true }) }
+  function setName(v) { lead.name = v; step = 'phone'; bot('Приятно познакомиться, ' + esc(v) + '! Напишите номер телефона, мастер перезвонит и уточнит детали.'); say.type = 'tel'; say.placeholder = '+7 900 000-00-00' }
+  function setPhone(v) {
+    var d = v.replace(/\D/g, '')
+    if (d.length < 10 || d.length > 12) { bot('Кажется, в номере ошибка. Напишите 10 или 11 цифр, например +7 900 123-45-67.'); return }
+    if (d.length === 10) d = '7' + d
+    if (d[0] === '8') d = '7' + d.slice(1)
+    lead.phone = '+' + d[0] + ' ' + d.slice(1, 4) + ' ' + d.slice(4, 7) + '-' + d.slice(7, 9) + '-' + d.slice(9, 11)
+    say.type = 'text'; say.placeholder = 'Напишите сообщение'; step = 'confirm'
+    bot('Проверьте заявку:\n<b>' + esc(lead.device) + '</b>, ' + esc(lead.issue).toLowerCase() + '\nИмя: ' + esc(lead.name) + '\nТелефон: ' + lead.phone, [['Отправить мастеру', send], ['Изменить', start]])
+  }
+  function send() {
+    step = null
+    var l = lead; lead = {}
+    bot('Готово, заявка у мастера. Он перезвонит вам в рабочее время.\nЧем ещё помочь?', MENU()).then(function () { notify(l) })
+  }
+  function notify(l) {
+    if (empty) { empty.remove(); empty = null }
+    var c = el('article', 'lead', '<div class="hd">Новая заявка из бота <small>' + now() + '</small></div><dl><dt>Что</dt><dd>' + esc(l.device) + ', ' + esc(l.issue).toLowerCase() + '</dd><dt>Имя</dt><dd>' + esc(l.name) + '</dd><dt>Телефон</dt><dd>' + l.phone + '</dd></dl><div class="act"><button type="button">Позвонить</button><button type="button" class="take" aria-pressed="false">Взять в работу</button></div>')
+    var take = c.querySelector('.take')
+    take.onclick = function () { var on = take.getAttribute('aria-pressed') !== 'true'; take.setAttribute('aria-pressed', on); take.textContent = on ? 'В работе' : 'Взять в работу' }
+    c.querySelector('.act button').onclick = function () { this.textContent = 'В демо не звоним' }
+    inbox.prepend(c)
+    toOwner.classList.add('show')
+  }
+
+  function free(t) {
+    var s = t.toLowerCase()
+    if (/цен|стои|сколько.*(руб|₽|денег)|прайс/.test(s)) return price()
+    if (/срок|долго|время|когда.*готов|быстро/.test(s)) return time()
+    if (/адрес|где|наход|график|работаете|часы/.test(s)) return where()
+    if (/заявк|запис|почин|ремонт|сломал|разбил/.test(s)) return start()
+    bot('Я пока понимаю вопросы про цены, сроки и адрес. Выберите кнопку или оставьте заявку, мастер ответит лично.', MENU())
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault()
+    var t = say.value.trim(); if (!t) return
+    say.value = ''; me(t)
+    if (step === 'issue') setIssue(t)
+    else if (step === 'name') setName(t.slice(0, 40))
+    else if (step === 'phone') setPhone(t)
+    else free(t)
+  })
+  document.getElementById('restart').onclick = function () { queue = Promise.resolve(); say.type = 'text'; say.placeholder = 'Напишите сообщение'; hello() }
+  toOwner.onclick = function () { document.getElementById('owner').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }) }
+
+  hello()
+  if (shot) {
+    me('Сколько стоит ремонт'); price()
+    queue.then(function () { me('Оставить заявку'); start(); me('Телефон'); setDev('Телефон'); me('Разбит экран'); setIssue('Разбит экран'); me('Анна'); setName('Анна'); me('+7 900 123-45-67'); setPhone('+79001234567'); return queue })
+      .then(function () { me('Отправить мастеру'); send(); return queue }).then(function () { down(); document.documentElement.dataset.ready = 1 })
+  }
+})()
+</script>
+</body>
+</html>
