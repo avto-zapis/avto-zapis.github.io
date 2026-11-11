@@ -171,6 +171,7 @@ a:focus-visible, button:focus-visible { outline:3px solid var(--amber); outline-
 .why-grid { display:grid; gap:16px; margin-top:clamp(36px, 5vw, 64px) }
 .why-card { padding:clamp(24px, 2.6vw, 34px) }
 .why-card p { margin-top:12px; color:var(--muted) }
+.why-card p.ex { color:var(--paper); margin-top:16px }
 .why-card .ic { width:44px; height:44px; border-radius:14px; display:grid; place-items:center; background:rgba(255,255,255,.06); color:var(--paper); margin-bottom:22px }
 .why-card .ic svg { width:22px; height:22px }
 .why-card.lead { display:grid; gap:24px }
@@ -362,12 +363,13 @@ footer.foot .wrap { display:flex; flex-wrap:wrap; gap:8px 24px; justify-content:
     <div class="glow" style="left:-12%; top:10%" aria-hidden="true"></div>
     <div class="wrap">
       <h2 id="why-h" data-reveal>Почему это выгодно</h2>
-      <p class="sub" data-reveal>Клиенты записываются сами, а вы не отвлекаетесь от работы на звонки и переписку.</p>
+      <p class="sub" data-reveal>Для любого бизнеса: сайт, бот или автоматизация. Делаю с помощью ИИ, поэтому быстро и недорого.</p>
       <div class="why-grid">
         <article class="glass why-card lead" data-reveal>
           <div>
-            <h3>Запись идёт, пока вы работаете</h3>
-            <p>Клиент открывает ссылку, выбирает услугу, мастера и свободное время. Вам не нужно брать трубку посреди процедуры, а занятое время другие уже не увидят.</p>
+            <h3>Быстро</h3>
+            <p>С ИИ первый пример готов за день-два. Не нужно ждать неделями, чтобы увидеть, как всё будет работать.</p>
+            <p class="ex">Например, сайт с онлайн-записью: заявки сразу приходят владельцу уведомлением.</p>
           </div>
           <div aria-hidden="true">
             <div class="mini-toast"><i><svg viewBox="0 0 24 24" fill="none" stroke="#2A1A02" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/><path d="m9 15 2 2 4-4"/></svg></i><div><b>Новая запись · Миндаль</b><span>Маникюр с покрытием, пт 19:30</span></div></div>
@@ -375,20 +377,20 @@ footer.foot .wrap { display:flex; flex-wrap:wrap; gap:8px 24px; justify-content:
           </div>
         </article>
         <article class="glass why-card" data-reveal>
-          <h3>О заявке сразу узнаёте</h3>
-          <p>Новая запись, перенос или отмена приходят уведомлением на телефон.</p>
-        </article>
-        <article class="glass why-card" data-reveal>
-          <h3>Ставится как приложение</h3>
-          <p>Клиенту ничего не нужно скачивать из магазина. Сайт открывается по ссылке и добавляется на экран телефона.</p>
-        </article>
-        <article class="glass why-card" data-reveal>
-          <h3>Цены и фото меняете сами</h3>
-          <p>В кабинете владельца: услуги, цены, мастера, фото и расписание. Без меня и без звонков.</p>
+          <h3>Дешевле обычной студии</h3>
+          <p>Большую часть кода пишет ИИ, я ставлю задачу и проверяю результат. Вы не платите за долгую ручную работу.</p>
         </article>
         <article class="glass why-card" data-reveal>
           <h3>Сначала смотрите, потом платите</h3>
-          <p>Пример с вашими ценами делаю до разговора о деньгах. Не понравился, ничего не должны.</p>
+          <p>Пример делаю до разговора о деньгах. Не понравился, ничего не должны.</p>
+        </article>
+        <article class="glass why-card" data-reveal>
+          <h3>Один человек от идеи до запуска</h3>
+          <p>Вы общаетесь со мной напрямую, без менеджеров. Кто делает, тот и отвечает.</p>
+        </article>
+        <article class="glass why-card" data-reveal>
+          <h3>Помогаю и после запуска</h3>
+          <p>Нужно что-то поменять или добавить, пишете мне, я правлю. Поддерживаю после запуска.</p>
         </article>
       </div>
     </div>
