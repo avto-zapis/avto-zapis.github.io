@@ -680,7 +680,7 @@ footer.foot .wrap { display:flex; flex-wrap:wrap; gap:8px 24px; justify-content:
   els.forEach(function (e) { io.observe(e) })
 })();
 // Ссылки на Max и ВК: вписать сюда. Пустая ссылка = кнопка не показывается.
-var LINKS = { 'max-dm': 'https://max.ru/u/f9LHodD0cOKXvggp5z9sEdvW-dAzyQfA0VJ_B9-shHo695pGJOVc7uGw4CU', 'vk-dm': 'https://vk.me/nishstudio', 'max-channel': 'https://max.ru/channel_nish_studio' }
+var LINKS = { 'max-dm': 'https://max.ru/u/f9LHodD0cOKXvggp5z9sEdvW-dAzyQfA0VJ_B9-shHo695pGJOVc7uGw4CU', 'vk-dm': 'https://vk.me/oni_rockstar', 'max-channel': 'https://max.ru/channel_nish_studio' }
 Object.keys(LINKS).forEach(function (k) {
   document.querySelectorAll('[data-link="' + k + '"]').forEach(function (a) {
     if (LINKS[k]) { a.href = LINKS[k]; a.target = '_blank'; a.rel = 'noopener'; a.hidden = false }
