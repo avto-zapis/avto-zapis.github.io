@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nish Studio, Ярослав Кальниш</title>
+<meta name="description" content="Сайты с онлайн-записью, боты и автоматизация для салонов, мастеров и детейлингов. Сначала пример с вашими ценами и фото, оплата только если понравится.">
+<meta name="theme-color" content="#13151C">
+<script>document.documentElement.classList.add('js')</script>
+<link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&family=Unbounded:wght@600;700&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="img/hero-norde-home.webp">
+<style>
+:root {
+  --ink:#13151C; --ink2:#1B1E28; --ink3:#262A36; --line:#323747; --edge:#3A3F4E;
+  --paper:#F3F1EA; --muted:#A6ABB8; --amber:#FFB23F; --amber-ink:#2A1A02;
+  --pad:clamp(20px, 5vw, 72px); --max:1320px;
+  color-scheme: dark;
+}
+* { box-sizing:border-box; margin:0; padding:0 }
+html { scroll-behavior:smooth; scroll-padding-top:84px }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior:auto } }
+body { background:var(--ink); color:var(--paper); font:400 18px/1.55 'Onest', system-ui, sans-serif; -webkit-font-smoothing:antialiased; overflow-x:hidden }
+::selection { background:var(--amber); color:var(--amber-ink) }
+img { display:block; max-width:100% }
+a { color:inherit; text-underline-offset:.2em; text-decoration-thickness:1px }
+a:focus-visible, button:focus-visible { outline:3px solid var(--amber); outline-offset:3px; border-radius:12px }
+.wrap { max-width:var(--max); margin:0 auto; padding:0 var(--pad) }
+.sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap }
+
+/* ---------- шапка ---------- */
+.top { position:fixed; inset:0 0 auto; z-index:20; transition:background .25s, border-color .25s; border-bottom:1px solid transparent }
+.top.scrolled { background:rgba(19,21,28,.86); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); border-color:var(--line) }
+.top .wrap { display:flex; align-items:center; gap:28px; height:76px }
+.brand { display:flex; align-items:center; gap:12px; text-decoration:none; font:500 18px 'Unbounded', sans-serif; letter-spacing:-0.03em }
+.brand b { font-weight:700 }
+.brand svg { width:38px; height:38px; flex:none }
+.top nav { margin-left:auto; display:flex; gap:26px; font-size:16px }
+.top nav a { text-decoration:none; color:var(--muted); padding:10px 0 } .top nav a:hover { color:var(--paper) }
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:10px; min-height:52px; padding:0 26px; border-radius:16px; font:600 17px 'Onest', sans-serif; text-decoration:none; border:0; cursor:pointer; transition:transform .15s ease-out, background-color .15s }
+.btn svg { width:20px; height:20px; flex:none }
+.btn.primary { background:var(--amber); color:var(--amber-ink) }
+.btn.primary:hover { background:#FFC260 }
+.btn.ghost { background:rgba(38,42,54,.8); color:var(--paper); box-shadow:inset 0 0 0 1px var(--edge) }
+.btn.ghost:hover { background:#2E3240 }
+.btn:active { transform:translateY(1px) }
+.top .btn { min-height:44px; padding:0 18px; font-size:15px }
+@media (max-width:900px) { .top nav { display:none } .top .btn { margin-left:auto } }
+
+/* ---------- первый экран: эффект глубины ----------
+   слои снизу вверх: фон со светом → огромная надпись → телефон с тенью → уведомление.
+   Телефон и уведомление стоят ПЕРЕД буквами и закрывают их, как объект на экране блокировки iPhone. */
+.hero { position:relative; overflow:hidden; isolation:isolate; display:grid; grid-template-rows:auto auto; align-content:start }
+.layer { position:absolute; inset:0; will-change:transform }
+.bg { inset:-6%; z-index:0;
+  background:
+    radial-gradient(38% 46% at 70% 40%, rgba(255,178,63,.16), transparent 70%),
+    radial-gradient(42% 52% at 18% 22%, rgba(104,122,170,.20), transparent 72%),
+    radial-gradient(60% 40% at 50% 105%, rgba(255,178,63,.07), transparent 70%),
+    linear-gradient(180deg, #171A23 0%, #13151C 70%, #13151C 100%) }
+.word { z-index:1; display:flex; justify-content:center; pointer-events:none }
+.hero { --W:min(100vw - 2 * var(--pad) - 16px, var(--max) - 2 * var(--pad)); --fs:calc(var(--W) / 7.62 * .98) }
+.word h1 { position:absolute; left:0; right:0; margin:0 auto; max-width:var(--max); padding:0 var(--pad); top:var(--wt, 150px); font:700 var(--fs)/0.86 'Unbounded', sans-serif; letter-spacing:-0.045em; color:var(--paper); white-space:nowrap; text-align:left; user-select:none }
+.word h1 span { display:block }
+/* ПК: одна строка во всю ширину; телефон: две строки, каждая во всю ширину (размер подгоняет скрипт) */
+@media (min-width:900px) { .word h1 span { display:inline } }
+
+.subject { z-index:2; pointer-events:none }
+.phone { position:absolute; width:var(--pw); left:var(--px); top:var(--py); background:#0A0C11; border-radius:calc(var(--pw) * .15); padding:calc(var(--pw) * .035);
+  box-shadow: 0 60px 90px -30px rgba(0,0,0,.85), 0 30px 60px -20px rgba(0,0,0,.6), inset 0 0 0 1.5px #3E4352, inset 0 0 0 4px #0A0C11, inset 0 0 0 5px #23262F }
+.phone .scr { position:relative; border-radius:calc(var(--pw) * .118); overflow:hidden; aspect-ratio:1170/1992; background:#fff }
+.phone .scr img { position:absolute; left:0; top:8.5%; width:100%; height:91.5%; object-fit:cover; object-position:top }
+.phone .scr:before { content:''; position:absolute; top:3.2%; left:50%; width:30%; height:4.2%; transform:translateX(-50%); background:#0A0C11; border-radius:999px; z-index:2 }
+/* блик на стекле телефона */
+.phone .scr:after { content:''; position:absolute; inset:0; background:linear-gradient(115deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,0) 32%); pointer-events:none }
+
+.notice { z-index:3; pointer-events:none }
+.toast { position:absolute; left:var(--tx); top:var(--ty); width:var(--tw); display:flex; gap:14px; align-items:center; padding:14px 18px 14px 14px; border-radius:22px;
+  background:rgba(38,42,54,.92); -webkit-backdrop-filter:blur(18px) saturate(1.3); backdrop-filter:blur(18px) saturate(1.3);
+  box-shadow:0 30px 60px -18px rgba(0,0,0,.75), inset 0 0 0 1px rgba(255,255,255,.08) }
+.toast .ico { width:46px; height:46px; border-radius:13px; background:var(--amber); display:grid; place-items:center; flex:none }
+.toast .ico svg { width:26px; height:26px }
+.toast b { display:flex; justify-content:space-between; gap:10px; font-size:16px; font-weight:600 }
+.toast b small { font-weight:400; font-size:13px; color:var(--muted) }
+.toast span { display:block; font-size:14px; color:var(--muted); line-height:1.35; margin-top:2px }
+
+/* текст и кнопки первого экрана */
+.copy { position:relative; z-index:4; align-self:end; padding-bottom:clamp(36px, 6vh, 72px) }
+.copy .wrap { display:flex; flex-direction:column; align-items:flex-start }
+.copy p.lead { max-width:30ch; font-size:clamp(19px, 1.5vw, 22px); line-height:1.45 }
+.copy p.lead em { font-style:normal; color:var(--muted) }
+.copy .actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:26px }
+.copy .who { margin-top:22px; font-size:15px; color:var(--muted) }
+
+/* раскладка ПК */
+@media (min-width:900px) {
+  .hero { --wt:clamp(118px, 17vh, 170px); --pw:clamp(220px, 20vw, 290px);
+          --px:calc(50% + var(--W) * .33 - var(--pw) / 2); --py:calc(var(--wt) + var(--fs) * .86 * .5);
+          --tw:clamp(290px, 23vw, 350px); --tx:calc(var(--px) - var(--tw) * .72); --ty:calc(var(--py) + var(--pw) * .62);
+          min-height:calc(var(--py) + var(--pw) * 1.75 + 56px) }
+  .copy { align-self:start; padding:calc(var(--wt) + var(--fs) * .86 + 40px) 0 48px }
+  .copy .wrap { max-width:var(--max); padding-right:calc(100% - var(--px) + 40px) }
+}
+@media (min-width:1280px) { .copy .wrap { padding-right:calc(var(--max) - (var(--px) - (100% - var(--max)) / 2) + 40px) } }
+/* 900–1099: уведомление выше, над низом букв, чтобы не встречаться с текстом */
+@media (min-width:900px) and (max-width:1099px) { .hero { --tx:calc(var(--px) - var(--tw) * .82); --ty:calc(var(--wt) + var(--fs) * .86 * .78) } .toast b small { display:none } }
+
+/* раскладка телефона: две строки букв, телефон справа закрывает низ слова STUDIO */
+@media (max-width:899px) {
+  .hero { --wt:92px; --W:calc(100vw - 2 * var(--pad)); --f1:calc(var(--W) / 3.02); --f2:calc(var(--W) / 4.62);
+          min-height:auto; grid-template-rows:auto auto;
+          --pw:min(37vw, 230px); --px:calc(100% - var(--pw) - 14px); --py:calc(var(--wt) + var(--f1) * .88 + var(--f2) * .88 * .64);
+          --tw:min(64vw, 250px); --tx:14px; --ty:calc(var(--py) + var(--pw) * 1.42) }
+  .word h1 { line-height:.88 }
+  .word h1 span { display:block }
+  .word h1 span:first-child { font-size:var(--f1) }
+  .word h1 span:last-child { font-size:var(--f2) }
+  .stagefill { height:calc(var(--py) + var(--pw) * 1.72 + 48px) }
+  .copy { align-self:start; padding-top:8px }
+  .toast { gap:10px; padding:9px 12px 9px 9px; border-radius:16px }
+  .toast .ico { width:34px; height:34px; border-radius:10px } .toast .ico svg { width:20px; height:20px }
+  .toast b { font-size:13px; white-space:nowrap } .toast span { font-size:12px } .toast b small { display:none }
+}
+.stagefill { pointer-events:none }
+@media (min-width:600px) and (max-width:899px) {
+  .hero { --pw:min(30vw, 250px); --px:calc(var(--pad) + var(--W) * .72 - var(--pw) / 2); --py:calc(var(--wt) + var(--f1) * .88 + var(--f2) * .88 * .5);
+          --tw:290px; --tx:calc(var(--px) - var(--tw) * .82); --ty:calc(var(--py) + var(--pw) * 1.4) }
+}
+
+/* одно движение при загрузке: буквы проявляются, телефон поднимается и встаёт перед ними, приходит уведомление */
+@media (prefers-reduced-motion: no-preference) {
+  .word h1 { animation:wordIn 1.1s cubic-bezier(.16,1,.3,1) both }
+  .phone { animation:phoneIn 1.2s cubic-bezier(.16,1,.3,1) .25s both }
+  .toast { animation:toastIn .8s cubic-bezier(.16,1,.3,1) 1.25s both }
+  .copy .wrap > * { animation:fadeUp .8s cubic-bezier(.16,1,.3,1) both }
+  .copy .wrap > :nth-child(2) { animation-delay:.12s } .copy .wrap > :nth-child(3) { animation-delay:.2s }
+}
+@keyframes wordIn { from { opacity:0; transform:translateY(4%) scale(.985); filter:blur(8px) } to { opacity:1; transform:none; filter:none } }
+@keyframes phoneIn { from { opacity:0; transform:translateY(18%) } to { opacity:1; transform:none } }
+@keyframes toastIn { from { opacity:0; transform:translateY(16px) scale(.96); filter:blur(4px) } to { opacity:1; transform:none; filter:none } }
+@keyframes fadeUp { from { opacity:0; transform:translateY(14px) } to { opacity:1; transform:none } }
+
+/* ---------- общие для блоков ниже первого экрана ---------- */
+.sec { position:relative; overflow:hidden; padding:clamp(72px, 10vw, 136px) 0 }
+.sec h2 { font:600 clamp(30px, 4.4vw, 58px)/1.04 'Unbounded', sans-serif; letter-spacing:-0.035em; text-wrap:balance; max-width:16ch }
+.sec .sub { margin-top:18px; font-size:clamp(18px, 1.5vw, 21px); color:var(--muted); max-width:52ch; text-wrap:pretty }
+.sec h3 { font:600 clamp(20px, 1.8vw, 24px)/1.2 'Unbounded', sans-serif; letter-spacing:-0.025em }
+.sec p, .sec li { text-wrap:pretty }
+/* мягкий свет позади стекла, чтобы размытию было что размывать */
+.glow { position:absolute; pointer-events:none; z-index:0; width:min(60vw, 720px); aspect-ratio:1; border-radius:50%; filter:blur(10px);
+  background:radial-gradient(closest-side, rgba(255,178,63,.12), transparent) }
+.glow.cool { background:radial-gradient(closest-side, rgba(104,122,170,.18), transparent) }
+.sec > .wrap { position:relative; z-index:1 }
+
+/* стеклянная карточка */
+.glass { position:relative; border-radius:24px; background:rgba(33,37,48,.55); -webkit-backdrop-filter:blur(18px) saturate(1.2); backdrop-filter:blur(18px) saturate(1.2);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07), inset 0 1px 0 rgba(255,255,255,.06), 0 30px 60px -36px rgba(0,0,0,.7) }
+
+/* плавное появление: только если есть JS и движение не выключено */
+.js [data-reveal] { opacity:0; transform:translateY(26px); transition:opacity .8s cubic-bezier(.16,1,.3,1), transform .8s cubic-bezier(.16,1,.3,1) }
+.js [data-reveal].in { opacity:1; transform:none }
+@media (prefers-reduced-motion: reduce) { .js [data-reveal] { opacity:1; transform:none; transition:none } }
+
+/* ---------- 2. почему выгодно ---------- */
+.why-grid { display:grid; gap:16px; margin-top:clamp(36px, 5vw, 64px) }
+.why-card { padding:clamp(24px, 2.6vw, 34px) }
+.why-card p { margin-top:12px; color:var(--muted) }
+.why-card .ic { width:44px; height:44px; border-radius:14px; display:grid; place-items:center; background:rgba(255,255,255,.06); color:var(--paper); margin-bottom:22px }
+.why-card .ic svg { width:22px; height:22px }
+.why-card.lead { display:grid; gap:24px }
+.mini-toast { display:flex; gap:12px; align-items:center; padding:12px 16px 12px 12px; border-radius:18px; background:rgba(19,21,28,.7); box-shadow:inset 0 0 0 1px rgba(255,255,255,.06); max-width:340px }
+.mini-toast i { width:38px; height:38px; border-radius:11px; background:var(--amber); display:grid; place-items:center; flex:none }
+.mini-toast i svg { width:21px; height:21px }
+.mini-toast b { display:block; font-size:15px } .mini-toast span { display:block; font-size:13px; color:var(--muted) }
+.mini-toast + .mini-toast { margin-left:clamp(0px, 3vw, 36px) }
+@media (min-width:900px) {
+  .why-grid { grid-template-columns:1.25fr 1fr 1fr; grid-template-rows:auto auto }
+  .why-card.lead { grid-row:span 2; align-content:space-between }
+}
+
+/* ---------- 3. как работаю ---------- */
+.steps { list-style:none; display:grid; gap:14px; margin-top:clamp(36px, 5vw, 64px); counter-reset:s }
+.step { counter-increment:s; padding:28px 26px 30px; display:flex; flex-direction:column; gap:10px }
+.step:before { content:counter(s); font:600 15px 'Unbounded'; width:40px; height:40px; border-radius:50%; display:grid; place-items:center; color:var(--paper); box-shadow:inset 0 0 0 1.5px var(--edge); margin-bottom:12px }
+.step:last-child:before { background:var(--amber); color:var(--amber-ink); box-shadow:none }
+.step p { color:var(--muted) }
+@media (min-width:900px) {
+  .steps { grid-template-columns:repeat(4, 1fr); gap:16px; position:relative }
+  .steps:before { content:''; position:absolute; left:40px; right:40px; top:47px; height:1px; background:linear-gradient(90deg, var(--edge), var(--edge) 70%, var(--amber)) }
+  .step { background:transparent; box-shadow:none; -webkit-backdrop-filter:none; backdrop-filter:none; padding:28px 18px 0 6px }
+  .step:before { background:var(--ink); position:relative }
+  .step:last-child:before { background:var(--amber) }
+}
+
+/* ---------- 4. что делаю ---------- */
+.what { display:grid; gap:16px; margin-top:clamp(36px, 5vw, 64px) }
+.what-item { padding:clamp(26px, 2.8vw, 38px); display:flex; flex-direction:column; gap:12px }
+.what-item p { color:var(--muted) }
+.what-item .tag { align-self:flex-start; justify-self:start; font-size:14px; padding:6px 12px; border-radius:999px; background:rgba(255,255,255,.06); color:var(--muted) }
+.what-item.main .tag { background:var(--amber); color:var(--amber-ink); font-weight:600 }
+.what-item.main h3 { font-size:clamp(24px, 2.4vw, 32px) }
+.what-item ul { list-style:none; display:grid; gap:8px; margin-top:6px }
+.what-item li { padding-left:20px; position:relative; color:var(--paper) }
+.what-item li:before { content:''; position:absolute; left:0; top:.62em; width:7px; height:7px; border-radius:50%; background:var(--muted) }
+@media (min-width:900px) {
+  .what { grid-template-columns:repeat(3, 1fr) }
+  .what-item.main { grid-column:1 / -1; display:grid; grid-template-columns:1fr 1fr; column-gap:48px; align-items:start }
+  .what-item.main ul { grid-row:1 / span 3; grid-column:2; margin-top:0; align-self:center }
+}
+
+/* ---------- 5. работы ---------- */
+.works { display:grid; gap:clamp(72px, 9vw, 120px); margin-top:clamp(40px, 5vw, 72px) }
+.work { display:grid; gap:clamp(28px, 4vw, 64px); align-items:center }
+.work .kind { color:var(--muted); margin-top:8px }
+.work ul { list-style:none; display:grid; gap:10px; margin-top:20px }
+.work li { padding-left:20px; position:relative }
+.work li:before { content:''; position:absolute; left:0; top:.62em; width:7px; height:7px; border-radius:50%; background:var(--muted) }
+.work .acts { display:flex; flex-wrap:wrap; gap:10px; margin-top:28px }
+.work .demo { margin-top:14px; font-size:14px; color:var(--muted) }
+.btn.light { background:var(--paper); color:var(--ink) } .btn.light:hover { background:#fff }
+.btn svg.ext { width:16px; height:16px }
+@media (min-width:900px) {
+  .work { grid-template-columns:1.35fr 1fr }
+  .work:nth-child(even) { grid-template-columns:1fr 1.35fr }
+  .work:nth-child(even) .devices { order:2 }
+}
+.fine { margin-top:clamp(48px, 6vw, 80px); font-size:15px; color:var(--muted) }
+
+/* ноутбук и телефон из CSS, внутри настоящие скриншоты сайтов */
+.devices { position:relative; padding:0 9% 9% 0 }
+.laptop .lid { background:#0B0D12; border-radius:14px 14px 4px 4px; padding:2.2% 2.2% 2.8%; box-shadow:inset 0 0 0 1px var(--edge), 0 50px 80px -40px rgba(0,0,0,.8) }
+.laptop .sc { border-radius:4px; overflow:hidden; aspect-ratio:16/10; background:#000 }
+.laptop .sc img { width:100%; height:100%; object-fit:cover; object-position:top }
+.laptop .base { height:clamp(8px, 1.1vw, 14px); margin:0 -5%; background:linear-gradient(#3A3F4E, #1A1D25); border-radius:0 0 14px 14px }
+.devices .ph { position:absolute; right:0; bottom:0; width:24%; background:#0A0C11; border-radius:clamp(16px, 2.4vw, 30px); padding:2%;
+  box-shadow:inset 0 0 0 1.5px #3E4352, 0 40px 60px -24px rgba(0,0,0,.85) }
+.devices .ph .sc { position:relative; border-radius:clamp(12px, 1.9vw, 24px); overflow:hidden; aspect-ratio:9/19.5; background:#fff }
+.devices .ph .sc:before { content:''; position:absolute; top:2.4%; left:50%; width:32%; height:3.6%; transform:translateX(-50%); background:#0A0C11; border-radius:999px; z-index:1 }
+.devices .ph .sc img { position:absolute; left:0; top:7%; width:100%; height:93%; object-fit:cover; object-position:top }
+
+/* ---------- 6. цена ---------- */
+.price-card { margin-top:clamp(36px, 5vw, 64px); padding:clamp(28px, 4vw, 56px); display:grid; gap:32px }
+.price-card .num { font:700 clamp(56px, 9vw, 120px)/.95 'Unbounded', sans-serif; letter-spacing:-0.05em }
+.price-card .num small { font-size:.42em; letter-spacing:-0.02em; color:var(--muted); font-weight:600 }
+.price-card .cond { margin-top:14px; font-size:clamp(18px, 1.6vw, 22px) }
+.price-card .cond b { color:var(--amber); font-weight:600 }
+.price-card ul { list-style:none; display:grid; gap:12px }
+.price-card li { display:flex; gap:12px; align-items:flex-start }
+.price-card li svg { width:20px; height:20px; flex:none; margin-top:3px; color:var(--paper) }
+.price-other { margin-top:16px; padding:22px 26px; display:flex; flex-wrap:wrap; gap:8px 24px; justify-content:space-between; align-items:center }
+.price-other span { color:var(--muted) }
+@media (min-width:900px) { .price-card { grid-template-columns:1fr 1fr; align-items:center; column-gap:64px } .price-card .btn { justify-self:start } }
+
+/* ---------- 7. обо мне ---------- */
+.about { display:grid; gap:clamp(28px, 4vw, 64px); margin-top:clamp(36px, 5vw, 64px) }
+.about-text p + p { margin-top:16px }
+.about-text p { font-size:clamp(18px, 1.5vw, 20px) }
+.about-card { padding:28px; display:grid; gap:18px; align-content:start }
+.about-card .me { display:flex; gap:16px; align-items:center }
+.about-card .me svg { width:64px; height:64px; flex:none }
+.about-card .me b { display:block; font:600 20px 'Unbounded'; letter-spacing:-0.02em }
+.about-card .me span { color:var(--muted) }
+.about-card dl { display:grid; gap:14px; padding-top:18px; border-top:1px solid rgba(255,255,255,.08) }
+.about-card dt { font-size:14px; color:var(--muted) }
+.about-card dd { margin-top:2px }
+.about-card a { color:var(--paper) }
+@media (min-width:900px) { .about { grid-template-columns:1.3fr 1fr; align-items:start } }
+
+/* ---------- 8. вопросы ---------- */
+.faq { margin-top:clamp(36px, 5vw, 64px); display:grid; gap:10px; max-width:900px }
+.faq details { padding:0 26px; border-radius:20px }
+.faq summary { list-style:none; cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:16px; min-height:72px; font-weight:600; font-size:clamp(17px, 1.4vw, 19px) }
+.faq summary::-webkit-details-marker { display:none }
+.faq summary:after { content:''; flex:none; width:14px; height:14px; border-right:2px solid var(--muted); border-bottom:2px solid var(--muted); transform:rotate(45deg) translate(-3px, -3px); transition:transform .25s }
+.faq details[open] summary:after { transform:rotate(-135deg) translate(-3px, -3px) }
+.faq details p { color:var(--muted); padding:0 0 24px; max-width:62ch }
+.faq summary:focus-visible { outline:3px solid var(--amber); outline-offset:4px; border-radius:12px }
+
+/* ---------- 9. заявка ---------- */
+.contact-card { margin-top:clamp(36px, 5vw, 56px); padding:clamp(28px, 4vw, 56px); display:grid; gap:28px }
+.contact-card .tg { font:600 clamp(24px, 3vw, 40px)/1.1 'Unbounded', sans-serif; letter-spacing:-0.03em }
+.links { display:flex; flex-wrap:wrap; gap:10px }
+.links .btn { min-height:48px; font-size:16px }
+.links [aria-disabled] { opacity:.62; cursor:default } .links [aria-disabled] small { font-weight:400; color:var(--muted); font-size:13px }
+@media (min-width:900px) { .contact-card { grid-template-columns:1.1fr 1fr; align-items:center } }
+
+footer.foot { border-top:1px solid var(--line); padding:32px 0 calc(32px + env(safe-area-inset-bottom)); color:var(--muted); font-size:15px }
+footer.foot .wrap { display:flex; flex-wrap:wrap; gap:8px 24px; justify-content:space-between }
+</style>
+</head>
+<body>
+
+<header class="top" id="top">
+  <div class="wrap">
+    <a class="brand" href="#" aria-label="Nish Studio, наверх">
+      <svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="24" fill="#262A36"/><path d="M30 72 V30 L66 70 V48" fill="none" stroke="#F3F1EA" stroke-width="9.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="66" cy="31" r="7.2" fill="#FFB23F"/></svg>
+      <span><b>Nish</b> Studio</span>
+    </a>
+    <nav aria-label="Разделы">
+      <a href="#why">Зачем</a>
+      <a href="#how">Как работаю</a>
+      <a href="#works">Работы</a>
+      <a href="#price">Цена</a>
+      <a href="#about">Обо мне</a>
+      <a href="#faq">Вопросы</a>
+    </nav>
+    <a class="btn ghost" href="https://t.me/Yaroslavnish" target="_blank" rel="noopener">Написать</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="layer bg" data-depth="0.15" aria-hidden="true"></div>
+    <div class="layer word" data-depth="0.4">
+      <h1 id="hero-title" aria-label="Nish Studio: сайты с онлайн-записью, боты и автоматизация"><span>NISH</span> <span>STUDIO</span></h1>
+    </div>
+    <div class="layer subject" data-depth="1" aria-hidden="true">
+      <div class="phone"><div class="scr"><img src="img/hero-norde-home.webp" alt="" width="600" height="1022" fetchpriority="high"></div></div>
+    </div>
+    <div class="layer notice" data-depth="1.6">
+      <div class="toast" role="img" aria-label="Пример уведомления: новая запись в салон Норде, женская стрижка, пятница, 16:00">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#2A1A02" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/><path d="m9 15 2 2 4-4"/></svg></div>
+        <div><b>Новая запись · Норде <small>сейчас</small></b><span>Стрижка, пт 16:00</span></div>
+      </div>
+    </div>
+    <div class="stagefill" aria-hidden="true"></div>
+    <div class="copy">
+      <div class="wrap">
+        <p class="lead">Сайты с онлайн-записью, боты и автоматизация для салонов, мастеров и детейлингов. <em>Сначала пример с вашими ценами и фото, платите, только если понравится.</em></p>
+        <div class="actions">
+          <a class="btn primary" href="https://t.me/Yaroslavnish" target="_blank" rel="noopener">Хочу пример для себя</a>
+          <a class="btn ghost" href="#works">Смотреть работы</a>
+        </div>
+        <p class="who">Ярослав Кальниш, Губкин. Самозанятый.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. почему выгодно -->
+  <section class="sec" id="why" aria-labelledby="why-h">
+    <div class="glow" style="left:-12%; top:10%" aria-hidden="true"></div>
+    <div class="wrap">
+      <h2 id="why-h" data-reveal>Почему это выгодно</h2>
+      <p class="sub" data-reveal>Клиенты записываются сами, а вы не отвлекаетесь от работы на звонки и переписку.</p>
+      <div class="why-grid">
+        <article class="glass why-card lead" data-reveal>
+          <div>
+            <h3>Запись идёт, пока вы работаете</h3>
+            <p>Клиент открывает ссылку, выбирает услугу, мастера и свободное время. Вам не нужно брать трубку посреди процедуры, а занятое время другие уже не увидят.</p>
+          </div>
+          <div aria-hidden="true">
+            <div class="mini-toast"><i><svg viewBox="0 0 24 24" fill="none" stroke="#2A1A02" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/><path d="m9 15 2 2 4-4"/></svg></i><div><b>Новая запись · Миндаль</b><span>Маникюр с покрытием, пт 19:30</span></div></div>
+            <div class="mini-toast" style="margin-top:10px"><i style="background:#262A36"><svg viewBox="0 0 24 24" fill="none" stroke="#F3F1EA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg></i><div><b>Клиент перенёс запись</b><span>Женская стрижка, сб 12:00</span></div></div>
+          </div>
+        </article>
+        <article class="glass why-card" data-reveal>
+          <h3>О заявке сразу узнаёте</h3>
+          <p>Новая запись, перенос или отмена приходят уведомлением на телефон.</p>
+        </article>
+        <article class="glass why-card" data-reveal>
+          <h3>Ставится как приложение</h3>
+          <p>Клиенту ничего не нужно скачивать из магазина. Сайт открывается по ссылке и добавляется на экран телефона.</p>
+        </article>
+        <article class="glass why-card" data-reveal>
+          <h3>Цены и фото меняете сами</h3>
+          <p>В кабинете владельца: услуги, цены, мастера, фото и расписание. Без меня и без звонков.</p>
+        </article>
+        <article class="glass why-card" data-reveal>
+          <h3>Сначала смотрите, потом платите</h3>
+          <p>Пример с вашими ценами делаю до разговора о деньгах. Не понравился, ничего не должны.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. как работаю -->
+  <section class="sec" id="how" aria-labelledby="how-h">
+    <div class="glow cool" style="right:-14%; top:-10%" aria-hidden="true"></div>
+    <div class="wrap">
+      <h2 id="how-h" data-reveal>Как работаю</h2>
+      <p class="sub" data-reveal>Четыре шага. Платите только на последнем.</p>
+      <ol class="steps">
+        <li class="glass step" data-reveal><h3>Пример с вашими ценами и фото</h3><p>Беру услуги, цены и фото из 2ГИС или ВК и собираю сайт с онлайн-записью. Это бесплатно.</p></li>
+        <li class="glass step" data-reveal><h3>Вы пробуете</h3><p>Открываете ссылку с телефона и записываетесь, как будто вы клиент.</p></li>
+        <li class="glass step" data-reveal><h3>Правки</h3><p>Говорите, что поменять: услуги, цены, тексты, цвета. Я переделываю.</p></li>
+        <li class="glass step" data-reveal><h3>Запуск и оплата</h3><p>Настраиваю уведомления и ставлю приложение вам на телефон. Только после этого платите.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 4. что делаю -->
+  <section class="sec" id="what" aria-labelledby="what-h">
+    <div class="wrap">
+      <h2 id="what-h" data-reveal>Что делаю</h2>
+      <div class="what">
+        <article class="glass what-item main" data-reveal>
+          <span class="tag">Главное</span>
+          <h3>Сайты с онлайн-записью</h3>
+          <p>Для салонов, мастеров маникюра, бровей и ресниц, барбершопов, детейлингов и моек.</p>
+          <ul>
+            <li>Услуга, мастер, день и время, без звонка</li>
+            <li>Уведомление владельцу о каждой заявке</li>
+            <li>«Мои записи» у клиента: перенос и отмена</li>
+            <li>Кабинет владельца: заявки, расписание, мастера, цены, фото</li>
+            <li>Ставится на телефон, светлая и тёмная тема</li>
+          </ul>
+        </article>
+        <article class="glass what-item" data-reveal>
+          <span class="tag">По договорённости</span>
+          <h3>Боты</h3>
+          <p>Отвечает на частые вопросы и записывает клиентов прямо в мессенджере.</p>
+        </article>
+        <article class="glass what-item" data-reveal>
+          <span class="tag">По договорённости</span>
+          <h3>Автоматизация</h3>
+          <p>Связываю заявки, таблицы и уведомления, чтобы меньше делать руками.</p>
+        </article>
+        <article class="glass what-item" data-reveal>
+          <span class="tag">По договорённости</span>
+          <h3>Лендинги</h3>
+          <p>Одна страница о вашем деле с ценами, фото и кнопкой записи или заявки.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. работы -->
+  <section class="sec" id="works" aria-labelledby="works-h">
+    <div class="glow" style="left:30%; top:30%" aria-hidden="true"></div>
+    <div class="wrap">
+      <h2 id="works-h" data-reveal>Работы</h2>
+      <p class="sub" data-reveal>Живые сайты на одном движке записи. Можно записаться как клиент и зайти в кабинет владельца.</p>
+      <div class="works">
+        <article class="work" data-reveal>
+          <div class="devices" aria-hidden="true">
+            <div class="laptop"><div class="lid"><div class="sc"><img src="img/w-norde-pc.webp" alt="" width="1200" height="750" loading="lazy" decoding="async"></div></div><div class="base"></div></div>
+            <div class="ph"><div class="sc"><img src="img/w-norde-phone.webp" alt="" width="420" height="715" loading="lazy" decoding="async"></div></div>
+          </div>
+          <div>
+            <h3>Норде</h3>
+            <p class="kind">Премиум-салон волос. Пример работы</p>
+            <ul><li>Большое фото, история салона и прайс строками: нажал на услугу и выбрал время</li><li>Запись к конкретному мастеру из его карточки</li><li>Перенос записи из «Моих записей», владельцу приходит уведомление</li></ul>
+            <div class="acts">
+              <a class="btn light" href="https://avto-zapis.github.io/norde/" target="_blank" rel="noopener">Открыть сайт <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>
+              <a class="btn ghost" href="https://avto-zapis.github.io/norde/admin" target="_blank" rel="noopener">Кабинет владельца (демо) <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>
+            </div>
+            <p class="demo">В кабинете на странице входа есть кнопка «Подставить»: она заполнит демо-логин и пароль.</p>
+          </div>
+        </article>
+        <article class="work" data-reveal>
+          <div class="devices" aria-hidden="true">
+            <div class="laptop"><div class="lid"><div class="sc"><img src="img/w-mindal-pc.webp" alt="" width="1200" height="750" loading="lazy" decoding="async"></div></div><div class="base"></div></div>
+            <div class="ph"><div class="sc"><img src="img/w-mindal-phone.webp" alt="" width="420" height="715" loading="lazy" decoding="async"></div></div>
+          </div>
+          <div>
+            <h3>Миндаль</h3>
+            <p class="kind">Студия маникюра. Пример работы</p>
+            <ul><li>Карточки услуг с фото, ценой «от» и кнопкой записи у каждой</li><li>Гарантия, стерильность по шагам и частые вопросы</li><li>Мастера с фото, к каждому своя запись</li></ul>
+            <div class="acts">
+              <a class="btn light" href="https://avto-zapis.github.io/mindal/" target="_blank" rel="noopener">Открыть сайт <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>
+              <a class="btn ghost" href="https://avto-zapis.github.io/mindal/admin" target="_blank" rel="noopener">Кабинет владельца (демо) <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>
+            </div>
+            <p class="demo">В кабинете на странице входа есть кнопка «Подставить»: она заполнит демо-логин и пароль.</p>
+          </div>
+        </article>
+        <article class="work" data-reveal>
+          <div class="devices" aria-hidden="true">
+            <div class="laptop"><div class="lid"><div class="sc"><img src="img/w-limonad-pc.webp" alt="" width="1200" height="750" loading="lazy" decoding="async"></div></div><div class="base"></div></div>
+            <div class="ph"><div class="sc"><img src="img/w-limonad-phone.webp" alt="" width="420" height="715" loading="lazy" decoding="async"></div></div>
+          </div>
+          <div>
+            <h3>Лимонад</h3>
+            <p class="kind">Яркий молодёжный салон. Пример работы</p>
+            <ul><li>Акция месяца: месяц и даты меняются сами</li><li>Колесо фортуны: подарок виден в записи и приходит владельцу в заявке</li><li>Кнопки Telegram, Max и WhatsApp</li></ul>
+            <div class="acts">
+              <a class="btn light" href="https://avto-zapis.github.io/limonad/" target="_blank" rel="noopener">Открыть сайт <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>
+              <a class="btn ghost" href="https://avto-zapis.github.io/limonad/admin" target="_blank" rel="noopener">Кабинет владельца (демо) <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>
+            </div>
+            <p class="demo">В кабинете на странице входа есть кнопка «Подставить»: она заполнит демо-логин и пароль.</p>
+          </div>
+        </article>
+        <article class="work" data-reveal>
+          <div class="devices" aria-hidden="true">
+            <div class="laptop"><div class="lid"><div class="sc"><img src="img/w-cyd-pc.webp" alt="" width="1200" height="750" loading="lazy" decoding="async"></div></div><div class="base"></div></div>
+            <div class="ph"><div class="sc"><img src="img/w-cyd-phone.webp" alt="" width="420" height="715" loading="lazy" decoding="async"></div></div>
+          </div>
+          <div>
+            <h3>CYD Detailing</h3>
+            <p class="kind">Детейлинг. Пример работы</p>
+            <ul><li>Клиент выбирает класс машины и сразу видит свою цену</li><li>Запись на услугу, день и свободное время без звонка</li><li>Владелец видит расписание по боксам на день и неделю</li></ul>
+            <div class="acts">
+              <a class="btn light" href="https://avto-zapis.github.io/cyd/" target="_blank" rel="noopener">Открыть сайт <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>
+              <a class="btn ghost" href="https://avto-zapis.github.io/cyd/admin" target="_blank" rel="noopener">Кабинет владельца (демо) <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>
+            </div>
+            <p class="demo">В кабинете на странице входа есть кнопка «Подставить»: она заполнит демо-логин и пароль.</p>
+          </div>
+        </article>
+      </div>
+      <p class="fine">Бренды вымышленные, сделаны для примера. Цены, адреса и контакты в них тоже для примера.</p>
+    </div>
+  </section>
+
+  <!-- 6. цена -->
+  <section class="sec" id="price" aria-labelledby="price-h">
+    <div class="glow" style="right:0; top:20%" aria-hidden="true"></div>
+    <div class="wrap">
+      <h2 id="price-h" data-reveal>Цена</h2>
+      <div class="glass price-card" data-reveal>
+        <div>
+          <p class="muted">Сайт с онлайн-записью</p>
+          <p class="num">3500 <small>₽</small></p>
+          <p class="cond"><b>Оплата только если понравится.</b> Не понравился пример, ничего не должны.</p>
+        </div>
+        <div>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Ваши услуги, цены, мастера и фото</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Онлайн-запись и «Мои записи» у клиента</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Уведомления о заявках и кабинет владельца</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Настройку и установку на телефон делаю я</li>
+          </ul>
+          <a class="btn primary" style="margin-top:28px" href="https://t.me/Yaroslavnish" target="_blank" rel="noopener">Хочу пример для себя</a>
+        </div>
+      </div>
+      <div class="glass price-other" data-reveal><b>Боты, автоматизация, лендинги</b><span>по договорённости</span></div>
+    </div>
+  </section>
+
+  <!-- 7. обо мне -->
+  <section class="sec" id="about" aria-labelledby="about-h">
+    <div class="wrap">
+      <h2 id="about-h" data-reveal>Обо мне</h2>
+      <div class="about">
+        <div class="about-text" data-reveal>
+          <p>Меня зовут Ярослав, я из Губкина. Делаю сайты с онлайн-записью, ботов и автоматизацию для небольшого бизнеса: салонов красоты, мастеров, барбершопов, детейлингов и моек.</p>
+          <p>Всё делаю сам: собираю пример, переделываю по вашим правкам, настраиваю уведомления и ставлю приложение на телефон. Пишите напрямую, без менеджеров.</p>
+        </div>
+        <aside class="glass about-card" data-reveal aria-label="Как меня проверить">
+          <div class="me">
+            <svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="24" fill="#262A36"/><path d="M30 72 V30 L66 70 V48" fill="none" stroke="#F3F1EA" stroke-width="9.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="66" cy="31" r="7.2" fill="#FFB23F"/></svg>
+            <div><b>Ярослав Кальниш</b><span>Nish Studio, Губкин</span></div>
+          </div>
+          <dl>
+            <div><dt>Статус</dt><dd>Самозанятый</dd></div>
+            <div><dt>Как проверить</dt><dd>По ИНН на <a href="https://npd.nalog.ru/check-status/" target="_blank" rel="noopener">npd.nalog.ru/check-status</a>. ИНН пришлю в личке.</dd></div>
+            <div><dt>Telegram</dt><dd><a href="https://t.me/Yaroslavnish" target="_blank" rel="noopener">@Yaroslavnish</a></dd></div>
+          </dl>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. вопросы -->
+  <section class="sec" id="faq" aria-labelledby="faq-h">
+    <div class="glow cool" style="left:-10%; top:20%" aria-hidden="true"></div>
+    <div class="wrap">
+      <h2 id="faq-h" data-reveal>Частые вопросы</h2>
+      <div class="faq">
+        <details class="glass" data-reveal><summary>Сколько стоит?</summary><p>Сайт с онлайн-записью стоит 3500 ₽. Боты, автоматизация и лендинги по договорённости, зависит от задачи.</p></details>
+        <details class="glass" data-reveal><summary>А если не понравится?</summary><p>Ничего не платите. Пример я делаю до разговора о деньгах.</p></details>
+        <details class="glass" data-reveal><summary>Откуда вы возьмёте мои цены и фото?</summary><p>Из 2ГИС или ВК. Если там чего-то нет, пришлёте сами, я добавлю.</p></details>
+        <details class="glass" data-reveal><summary>Клиенту нужно что-то скачивать?</summary><p>Нет. Он открывает сайт по ссылке и записывается. Если хочет, добавляет его на экран телефона как приложение.</p></details>
+        <details class="glass" data-reveal><summary>Как я узнаю о новой записи?</summary><p>На телефон приходит уведомление. В кабинете владельца видны все заявки и расписание по мастерам.</p></details>
+        <details class="glass" data-reveal><summary>Смогу сам поменять цены и фото?</summary><p>Да, в кабинете владельца. Там же мастера, услуги и рабочие часы.</p></details>
+        <details class="glass" data-reveal><summary>Вы работаете официально?</summary><p>Да, я самозанятый. Статус можно проверить по ИНН на npd.nalog.ru/check-status, ИНН пришлю в личке.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. заявка -->
+  <section class="sec" id="contact" aria-labelledby="contact-h">
+    <div class="glow" style="left:20%; top:0" aria-hidden="true"></div>
+    <div class="wrap">
+      <h2 id="contact-h" data-reveal>Хотите пример для себя?</h2>
+      <div class="glass contact-card" data-reveal>
+        <div>
+          <p class="sub" style="margin-top:0">Напишите в Telegram название и ссылку на 2ГИС или ВК. Соберу пример с вашими ценами и фото.</p>
+          <p class="tg" style="margin-top:20px">@Yaroslavnish</p>
+        </div>
+        <div class="links">
+          <a class="btn primary" href="https://t.me/Yaroslavnish" target="_blank" rel="noopener">Написать в Telegram</a>
+          <a class="btn ghost" data-link="max" href="#contact" aria-disabled="true">Max <small>скоро</small></a>
+          <a class="btn ghost" data-link="tg-channel" href="#contact" aria-disabled="true">Канал в Telegram <small>скоро</small></a>
+          <a class="btn ghost" data-link="vk-group" href="#contact" aria-disabled="true">Группа ВК <small>скоро</small></a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot"><div class="wrap"><span>© Nish Studio, Ярослав Кальниш</span><span>Губкин, самозанятый</span></div></footer>
+
+<script>
+// Появление блоков при прокрутке
+;(function () {
+  var els = document.querySelectorAll('[data-reveal]')
+  if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) { els.forEach(function (e) { e.classList.add('in') }); return }
+  var io = new IntersectionObserver(function (en) { en.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target) } }) }, { rootMargin: '0px 0px -8% 0px' })
+  els.forEach(function (e) { io.observe(e) })
+})();
+// Ссылки на Max, канал и группу: вписать сюда, когда появятся. Пустая ссылка = кнопка «скоро».
+var LINKS = { 'max': '', 'tg-channel': '', 'vk-group': '' }
+Object.keys(LINKS).forEach(function (k) {
+  var a = document.querySelector('[data-link="' + k + '"]'); if (!a) return
+  if (LINKS[k]) { a.href = LINKS[k]; a.target = '_blank'; a.rel = 'noopener'; a.removeAttribute('aria-disabled'); var sm = a.querySelector('small'); if (sm) sm.remove() }
+  else a.addEventListener('click', function (e) { e.preventDefault() })
+});
+
+// Шапка становится плотной при прокрутке
+(function () {
+  var top = document.getElementById('top')
+  function on() { top.classList.toggle('scrolled', scrollY > 24) }
+  addEventListener('scroll', on, { passive: true }); on()
+})();
+
+// Глубина: слои смещаются от мыши (ПК) и наклона телефона, у каждого слоя своя сила.
+// Только transform, один requestAnimationFrame, останавливается, когда всё на месте. Без движения при prefers-reduced-motion.
+(function () {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  var layers = [].slice.call(document.querySelectorAll('.hero .layer')).map(function (el) { return { el: el, d: parseFloat(el.dataset.depth) || 0 } })
+  var hero = document.querySelector('.hero')
+  var tx = 0, ty = 0, x = 0, y = 0, running = false, visible = true
+  var MAX = 18 // px смещения у самого близкого слоя
+  function frame() {
+    x += (tx - x) * 0.09; y += (ty - y) * 0.09
+    for (var i = 0; i < layers.length; i++) {
+      var l = layers[i]
+      l.el.style.transform = 'translate3d(' + (x * l.d * MAX).toFixed(2) + 'px,' + (y * l.d * MAX).toFixed(2) + 'px,0)'
+    }
+    if (Math.abs(tx - x) > 0.001 || Math.abs(ty - y) > 0.001) requestAnimationFrame(frame)
+    else running = false
+  }
+  function kick() { if (!running && visible) { running = true; requestAnimationFrame(frame) } }
+  addEventListener('pointermove', function (e) {
+    if (e.pointerType !== 'mouse') return
+    tx = (e.clientX / innerWidth - 0.5) * -2; ty = (e.clientY / innerHeight - 0.5) * -2; kick()
+  }, { passive: true })
+  addEventListener('deviceorientation', function (e) {
+    if (e.gamma == null) return
+    tx = Math.max(-1, Math.min(1, e.gamma / 25)) * -1; ty = Math.max(-1, Math.min(1, (e.beta - 45) / 25)) * -1; kick()
+  }, { passive: true })
+  new IntersectionObserver(function (en) { visible = en[0].isIntersecting }).observe(hero)
+})();
+</script>
+</body>
+</html>
