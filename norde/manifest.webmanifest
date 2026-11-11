@@ -1,0 +1,31 @@
+{
+  "id": "/norde/",
+  "name": "Норде",
+  "short_name": "Норде",
+  "description": "Салон волос: стрижка, цвет и уход",
+  "lang": "ru",
+  "start_url": "/norde/",
+  "scope": "/norde/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0c0f",
+  "theme_color": "#0b0c0f",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
