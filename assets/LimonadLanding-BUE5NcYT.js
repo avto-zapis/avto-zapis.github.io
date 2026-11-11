@@ -1,1 +1,0 @@
-import{r as e}from"./index-BCowjcub.js";import{t}from"./jsx-runtime-ninoEriq.js";var n=t();function r(){return(0,n.jsx)(e,{})}export{r as default};
