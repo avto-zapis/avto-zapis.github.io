@@ -1,0 +1,31 @@
+{
+  "id": "/avtomoyka-24/",
+  "name": "Автомойка 24",
+  "short_name": "Автомойка 24",
+  "description": "Автомойка и шиномонтаж",
+  "lang": "ru",
+  "start_url": "/avtomoyka-24/",
+  "scope": "/avtomoyka-24/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0c0f",
+  "theme_color": "#0b0c0f",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

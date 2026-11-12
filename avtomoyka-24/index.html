@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ru" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b0c0f" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Автомойка 24" />
+    <meta name="description" content="Онлайн-запись: выберите услугу и свободное время." />
+    <script>
+      // цвет, тема и шрифт бизнеса до первой отрисовки: страницу может отдать Service Worker, он не знает, чья она
+      (function () {
+        try {
+          var slug = location.pathname.split('/')[1]
+          var l = JSON.parse(localStorage.getItem('tenant-look:' + slug) || 'null')
+          if (!l) return
+          var p = localStorage.getItem('theme-pref:' + slug)
+          if (p === 'light' || p === 'dark') l.t = p
+          var r = document.documentElement
+          r.classList.toggle('dark', l.t === 'dark')
+          r.dataset.theme = l.t
+          r.dataset.font = l.f
+          r.style.setProperty('--brand', l.c)
+          r.style.setProperty('--brand-foreground', l.b)
+        } catch (e) {}
+      })()
+    </script>
+    
+    <title>Автомойка 24: онлайн-запись</title>
+    <link rel="manifest" href="/avtomoyka-24/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/avtomoyka-24/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" href="/avtomoyka-24/icon-192.png" />
+    <meta property="og:title" content="Автомойка 24: онлайн-запись" />
+    <meta property="og:description" content="Автомойка и шиномонтаж" />
+    <meta property="og:image" content="https://vgiikbkmiihfrvcjdxks.supabase.co/storage/v1/object/public/tenant-photos/81b7c497-4e2f-4217-9c06-f6cbf5802867/seed-1.jpg?v=mwdkp400" />
+    <script type="module" crossorigin src="/assets/index-CDunudgq.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/jsx-runtime-ninoEriq.js">
+    <link rel="modulepreload" crossorigin href="/assets/label-CkdZ2Gb1.js">
+    <link rel="modulepreload" crossorigin href="/assets/useTooltip-Dl6CWO6X.js">
+    <link rel="modulepreload" crossorigin href="/assets/business-Ct4whaGd.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-BNa6qHKU.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script defer src="/registerSW.js"></script>
+  </body>
+</html>

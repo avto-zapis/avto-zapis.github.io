@@ -1,0 +1,31 @@
+{
+  "id": "/akvablast/",
+  "name": "Аквабласт",
+  "short_name": "Аквабласт",
+  "description": "Очистка деталей и кузова сухим льдом и бластингом",
+  "lang": "ru",
+  "start_url": "/akvablast/",
+  "scope": "/akvablast/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0c0f",
+  "theme_color": "#0b0c0f",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

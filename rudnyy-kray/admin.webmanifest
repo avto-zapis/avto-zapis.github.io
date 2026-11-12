@@ -1,0 +1,30 @@
+{
+  "id": "/rudnyy-kray/admin",
+  "name": "Кабинет · Рудный Край",
+  "short_name": "Кабинет",
+  "lang": "ru",
+  "start_url": "/rudnyy-kray/admin",
+  "scope": "/rudnyy-kray/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0c0f",
+  "theme_color": "#0b0c0f",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
