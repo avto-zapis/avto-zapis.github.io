@@ -1,0 +1,31 @@
+{
+  "id": "/manager-detailing/",
+  "name": "Manager Detailing",
+  "short_name": "Manager",
+  "description": "Студия детейлинга",
+  "lang": "ru",
+  "start_url": "/manager-detailing/",
+  "scope": "/manager-detailing/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0c0f",
+  "theme_color": "#0b0c0f",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
