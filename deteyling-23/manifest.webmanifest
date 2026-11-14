@@ -1,0 +1,31 @@
+{
+  "id": "/deteyling-23/",
+  "name": "Детейлинг 23",
+  "short_name": "Детейлинг 23",
+  "description": "Детейлинг и полировка",
+  "lang": "ru",
+  "start_url": "/deteyling-23/",
+  "scope": "/deteyling-23/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0c0f",
+  "theme_color": "#0b0c0f",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
