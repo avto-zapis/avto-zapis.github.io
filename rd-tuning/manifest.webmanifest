@@ -1,0 +1,31 @@
+{
+  "id": "/rd-tuning/",
+  "name": "RD Tuning",
+  "short_name": "RD Tuning",
+  "description": "Детейлинг и тюнинг",
+  "lang": "ru",
+  "start_url": "/rd-tuning/",
+  "scope": "/rd-tuning/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0c0f",
+  "theme_color": "#0b0c0f",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
