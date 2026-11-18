@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Мадиго: сколько стоит ваша кухня (калькулятор)</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#E8E8E6">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2326231F'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-family='Arial' font-weight='700' font-size='32' fill='%23fff'%3EМ%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#E8E8E6; --panel:#FFFFFF; --ink:#26231F; --sub:#66615A; --line:#D8D6D2; --soft:#F3F2F0; --acc:#B5562E; --acc-soft:#F6E6DD; --acc-ink:#8E4122; --on-acc:#FFFFFF; }
+* { box-sizing:border-box; margin:0; padding:0 }
+html { -webkit-text-size-adjust:100% }
+body { background:var(--bg); color:var(--ink); font:500 16.5px/1.5 'Manrope', system-ui, sans-serif; -webkit-font-smoothing:antialiased; overflow-x:hidden }
+button, input { font:inherit; color:inherit }
+button, label { cursor:pointer }
+:focus-visible { outline:3px solid var(--acc); outline-offset:2px; border-radius:10px }
+a { color:inherit }
+.demo-bar { display:flex; justify-content:center; gap:10px; flex-wrap:wrap; padding:8px 16px; background:var(--ink); color:#fff; font-size:14px; text-align:center }
+.demo-bar a { font-weight:700 }
+
+.top { max-width:1240px; margin:0 auto; padding:20px clamp(16px,4vw,40px) 0; display:flex; align-items:center; gap:16px; justify-content:space-between; flex-wrap:wrap }
+.logo { display:flex; align-items:center; gap:12px; text-decoration:none; min-width:0 }
+.logo i { flex:none; width:40px; height:40px; border-radius:12px; background:var(--ink); color:#fff; display:grid; place-items:center; font-style:normal; font-weight:800; font-size:19px }
+.logo b { font-weight:800; font-size:21px; letter-spacing:-.02em; line-height:1.1; display:block }
+.logo small { display:block; color:var(--sub); font-size:13.5px; font-weight:600 }
+.top .tel { font-weight:800; text-decoration:none; font-variant-numeric:tabular-nums; white-space:nowrap }
+
+.intro { max-width:1240px; margin:0 auto; padding:34px clamp(16px,4vw,40px) 22px }
+.intro h1 { font-size:clamp(30px,4.4vw,56px); line-height:1.04; letter-spacing:-.035em; font-weight:800; max-width:18ch; text-wrap:balance }
+.intro p { color:var(--sub); margin-top:12px; max-width:54ch }
+
+.calc { max-width:1240px; margin:0 auto; padding:0 clamp(16px,4vw,40px) 40px; display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr); gap:20px; align-items:start }
+@media (max-width:900px) { .calc { grid-template-columns:minmax(0,1fr) } }
+.panel { background:var(--panel); border-radius:24px; padding:clamp(18px,2.6vw,30px); min-width:0 }
+
+.pic { position:relative; border-radius:18px; overflow:hidden; aspect-ratio:16/8; background:var(--soft); margin-bottom:22px }
+.pic svg { width:100%; height:100%; display:block }
+.pic .tag { position:absolute; left:12px; bottom:12px; max-width:calc(100% - 24px); background:rgba(255,255,255,.93); color:#1d1d1f; border-radius:12px; padding:6px 12px; font-size:14px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.pic * { transition:fill .3s, opacity .3s }
+@media (prefers-reduced-motion: reduce) { .pic * { transition:none } }
+
+fieldset { border:0; padding:18px 0; border-top:1px solid var(--line); min-width:0 }
+fieldset:first-of-type { border-top:0; padding-top:0 }
+legend { font-weight:700; font-size:17px; padding:0; margin-bottom:12px; float:left; width:100% }
+legend + * { clear:both }
+.hint { color:var(--sub); font-size:14px; font-weight:500; margin-left:6px }
+
+.qty { display:grid; grid-template-columns:1fr auto; gap:16px; align-items:center }
+.qty + .qty { margin-top:14px }
+.qty .ql { grid-column:1/-1; font-weight:600; font-size:15px; color:var(--sub); margin-bottom:-8px }
+input[type=range] { width:100%; accent-color:var(--acc); height:28px }
+.num { display:flex; align-items:center; border:1.5px solid var(--line); border-radius:14px; padding:0 12px; background:var(--soft) }
+.num input { width:64px; border:0; background:none; padding:10px 0; font-weight:800; font-size:20px; text-align:right; font-variant-numeric:tabular-nums }
+.num input:focus { outline:none }
+.num:focus-within { border-color:var(--acc) }
+.num span { color:var(--sub); margin-left:4px; white-space:nowrap }
+.txt { width:100%; border:1.5px solid var(--line); border-radius:14px; padding:12px 14px; background:var(--soft); font-weight:700; font-size:18px }
+.txt:focus { outline:none; border-color:var(--acc) }
+
+.seg { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px }
+.seg.sm { grid-template-columns:repeat(3,1fr) }
+@media (max-width:420px) { .seg.sm span { padding:12px 4px; font-size:14.5px } }
+.seg label { position:relative; min-width:0 }
+.seg input { position:absolute; opacity:0; inset:0 }
+.seg span { display:block; border:1.5px solid var(--line); border-radius:14px; padding:12px 10px; text-align:center; font-weight:700; line-height:1.25; height:100%; overflow-wrap:break-word; hyphens:auto }
+.seg small { display:block; font-weight:600; color:var(--sub); font-size:13px; margin-top:4px; font-variant-numeric:tabular-nums }
+.seg label:hover span { border-color:var(--acc) }
+.seg input:checked + span { border-color:var(--acc); background:var(--acc-soft); color:var(--acc-ink) }
+.seg input:checked + span small { color:var(--acc-ink) }
+.seg input:focus-visible + span { outline:3px solid var(--acc); outline-offset:2px }
+.sw { display:flex; gap:10px; flex-wrap:wrap }
+.sw label { position:relative }
+.sw input { position:absolute; opacity:0; inset:0 }
+.sw span { display:block; width:44px; height:44px; border-radius:50%; border:3px solid var(--panel); box-shadow:0 0 0 1.5px var(--line) }
+.sw input:checked + span { box-shadow:0 0 0 3px var(--acc) }
+.sw input:focus-visible + span { outline:3px solid var(--acc); outline-offset:3px }
+
+.cnt { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 0 }
+.cnt + .cnt { border-top:1px dashed var(--line) }
+.cnt b { font-weight:700 } .cnt small { display:block; color:var(--sub); font-weight:600; font-size:13.5px; font-variant-numeric:tabular-nums }
+.step { display:flex; align-items:center; gap:4px; flex:none }
+.step button { width:44px; height:44px; border-radius:12px; border:1.5px solid var(--line); background:var(--panel); font-size:20px; font-weight:700; line-height:1 }
+.step button:hover { border-color:var(--acc); color:var(--acc-ink) }
+.step output { min-width:36px; text-align:center; font-weight:800; font-size:18px; font-variant-numeric:tabular-nums }
+
+.sum { position:sticky; top:16px }
+.sum .big { font-size:clamp(34px,5vw,54px); font-weight:800; letter-spacing:-.04em; line-height:1.05; font-variant-numeric:tabular-nums; margin:6px 0 4px; overflow-wrap:anywhere }
+.sum .big.ask { font-size:clamp(28px,3.6vw,40px) }
+.sum .lbl { color:var(--sub); font-weight:600 }
+.rows { margin:18px 0; display:grid; gap:8px; font-size:15px }
+.rows div { display:flex; justify-content:space-between; gap:12px }
+.rows dd { font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap }
+.rows dt { color:var(--sub) }
+.cond { font-size:13.5px; color:var(--sub); border-top:1px solid var(--line); padding-top:12px }
+
+form { margin-top:22px; display:grid; gap:12px }
+form h2 { font-size:20px; letter-spacing:-.02em }
+.f label { display:block; font-weight:700; font-size:14.5px; margin-bottom:6px }
+.f input { width:100%; border:1.5px solid var(--line); border-radius:14px; padding:12px 14px; background:var(--soft); font-size:16px }
+.f input:focus { outline:none; border-color:var(--acc); background:#fff }
+.f .err { color:#B42318; font-size:14px; margin-top:4px; display:none }
+.f.bad input { border-color:#B42318 } .f.bad .err { display:block }
+.go { border:0; border-radius:16px; padding:16px; background:var(--acc); color:var(--on-acc); font-weight:800; font-size:17px }
+.go:hover { filter:brightness(.93) }
+.privacy { font-size:13px; color:var(--sub) }
+.done { display:none; margin-top:22px }
+.done.show { display:block; animation:in .3s ease-out both }
+@keyframes in { from { opacity:0; transform:translateY(8px) } }
+@media (prefers-reduced-motion: reduce) { .done.show { animation:none } }
+.done h2 { font-size:22px; letter-spacing:-.02em; color:#14804A }
+.done > p { color:var(--sub); margin:6px 0 14px }
+.tgmsg { background:var(--soft); border-radius:16px; padding:14px }
+.tgmsg .who { font-size:13px; font-weight:700; color:var(--acc-ink); margin-bottom:6px }
+.tgmsg .b { background:#fff; color:#1d1d1f; border-radius:14px 14px 14px 6px; padding:10px 12px; font-size:14.5px; line-height:1.5; white-space:pre-line }
+.again { margin-top:12px; border:1.5px solid var(--line); background:none; border-radius:14px; padding:10px 14px; font-weight:700 }
+
+.more { max-width:1240px; margin:0 auto; padding:0 clamp(16px,4vw,40px) 40px; display:grid; gap:20px }
+.more h2 { font-size:clamp(22px,2.6vw,30px); letter-spacing:-.025em; margin-bottom:14px }
+.ph { display:grid; grid-template-columns:repeat(4,1fr); gap:10px }
+@media (max-width:700px) { .ph { grid-template-columns:repeat(2,1fr) } }
+.ph img { width:100%; height:auto; aspect-ratio:4/3; object-fit:cover; border-radius:16px; display:block; background:var(--soft) }
+.plist { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:0 28px }
+.plist div { display:flex; justify-content:space-between; gap:14px; padding:10px 0; border-bottom:1px solid var(--line); font-size:15px }
+.plist dd { font-weight:700; white-space:nowrap; font-variant-numeric:tabular-nums }
+.src { color:var(--sub); font-size:13.5px; margin-top:10px }
+.contacts { display:flex; flex-wrap:wrap; gap:10px 26px; color:var(--sub) }
+.contacts b { color:var(--ink) }
+
+.mbar { display:none }
+@media (max-width:900px) {
+  .mbar { display:flex; position:fixed; left:12px; right:12px; bottom:calc(12px + env(safe-area-inset-bottom)); z-index:5; align-items:center; justify-content:space-between; gap:12px; background:var(--ink); color:#fff; border-radius:18px; padding:10px 10px 10px 18px; text-decoration:none; box-shadow:0 12px 30px -10px rgba(0,0,0,.45); transition:transform .25s, opacity .25s }
+  .mbar b { font-size:20px; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:-.02em }
+  .mbar small { display:block; font-size:12.5px; opacity:.75; font-weight:600 }
+  .mbar span.go2 { background:var(--acc); color:var(--on-acc); border-radius:12px; padding:10px 14px; font-weight:800; font-size:15px; white-space:nowrap }
+  .mbar.off { transform:translateY(140%); opacity:0; pointer-events:none }
+  body { padding-bottom:84px }
+}
+.foot { max-width:1240px; margin:0 auto; padding:0 clamp(16px,4vw,40px) 40px; color:var(--sub); font-size:14px }
+</style>
+</head>
+<body>
+<div class="demo-bar">Пример калькулятора для «Мадиго», сделан в Nish Studio. Заявки пока никуда не уходят. <a href="../nish/">Nish Studio</a></div>
+
+<header class="top">
+  <a class="logo" href="#"><i>М</i><span><b>Мадиго</b><small>Кухни на заказ, Курск</small></span></a>
+  <a class="tel" href="tel:+79192792559">+7-919-279-25-59</a>
+</header>
+
+<section class="intro">
+  <h1 id="h1"></h1>
+  <p id="lead"></p>
+</section>
+
+<main class="calc">
+  <div class="panel" id="inputs">
+    <div class="pic" aria-hidden="true"><svg id="svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid slice"></svg><span class="tag" id="tag"></span></div>
+  </div>
+  <aside class="panel sum" id="sum" aria-labelledby="sum-h">
+    <p class="lbl" id="sum-h"></p>
+    <p class="big" id="total" aria-live="polite"></p>
+    <dl class="rows" id="rows"></dl>
+    <p class="cond" id="cond"></p>
+    <form id="form" novalidate>
+      <h2 id="fh"></h2>
+      <div class="f" id="fName"><label for="name">Имя</label><input id="name" autocomplete="given-name" maxlength="40"><p class="err">Напишите, как к вам обращаться</p></div>
+      <div class="f" id="fPhone"><label for="phone">Телефон</label><input id="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+7 900 000-00-00"><p class="err">Нужно 10 или 11 цифр</p></div>
+      <div class="f"><label id="mLbl">Куда ответить</label>
+        <div class="seg sm" role="radiogroup" aria-labelledby="mLbl">
+          <label><input type="radio" name="m" value="Telegram" checked><span>Telegram</span></label>
+          <label><input type="radio" name="m" value="Max"><span>Max</span></label>
+          <label><input type="radio" name="m" value="Звонок"><span>Звонок</span></label>
+        </div>
+      </div>
+      <button class="go" type="submit" id="goBtn"></button>
+      <p class="privacy">Нажимая кнопку, вы соглашаетесь на обработку данных для связи с вами.</p>
+    </form>
+    <div class="done" id="done" role="status">
+      <h2>Заявка отправлена</h2>
+      <p>Так она придёт в «Мадиго» в Telegram:</p>
+      <div class="tgmsg"><div class="who">Бот «Мадиго», заявки</div><div class="b" id="owner"></div></div>
+      <button class="again" type="button" id="again">Посчитать ещё раз</button>
+    </div>
+  </aside>
+</main>
+
+<section class="more" id="more"></section>
+<a class="mbar" id="mbar" href="#sum"><span><small id="mlbl"></small><b id="total2"></b></span><span class="go2">Отправить</span></a>
+<p class="foot">Калькулятор, тексты и цвета можно поменять. Цены в карточке компании не указаны, поэтому калькулятор пока предлагает уточнить цену: впишем ваши, и он начнёт считать.</p>
+
+<script>
+// Картинки калькуляторов (SVG 800x400) и подпись количества. Вставляется в template.html.
+var AMT = {
+  kitchen: function (st) { return st.q.len + ' м' },
+  room: function (st) { return st.q.area + ' м²' },
+  ceiling: function (st) { return st.q.area + ' м²' },
+  sign: function (st, n) { return C.lettersMul ? n + ' букв, высота ' + st.q.h + ' см' : (st.q.w + ' × ' + st.q.h + ' м') }
+}
+function shade(hex, k) {
+  var n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255
+  var f = function (x) { return Math.max(0, Math.min(255, Math.round(k < 0 ? x * (1 + k) : x + (255 - x) * k))) }
+  return '#' + ((1 << 24) + (f(r) << 16) + (f(g) << 8) + f(b)).toString(16).slice(1)
+}
+var PIC = {
+  kitchen: function (st) {
+    var col = C.swatches ? C.swatches.items[st.sw][1] : '#D8CBB5', dark = shade(col, -.18), top = '#3B3631'
+    var L = st.q.len, n = Math.max(2, Math.min(12, Math.round(L / 0.6)))
+    var shape = st.shape || 0, x0 = shape ? 150 : 80, x1 = shape === 2 ? 650 : 720, w = (x1 - x0) / n
+    var s = '<defs><linearGradient id="kw" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#EEE9E1"/><stop offset="1" stop-color="#DDD6CB"/></linearGradient></defs>'
+    s += '<rect width="800" height="400" fill="url(#kw)"/><rect y="330" width="800" height="70" fill="#B9AE9E"/>'
+    s += '<rect x="' + x0 + '" y="214" width="' + (x1 - x0) + '" height="58" fill="#E6E0D6"/>'
+    for (var i = 0; i < n; i++) {
+      var x = x0 + i * w
+      s += '<rect x="' + (x + 2) + '" y="234" width="' + (w - 4) + '" height="92" rx="3" fill="' + col + '"/>'
+      s += '<rect x="' + (x + w / 2 - 12) + '" y="244" width="24" height="4" rx="2" fill="' + dark + '"/>'
+      if (i % 4 !== 1) { s += '<rect x="' + (x + 2) + '" y="70" width="' + (w - 4) + '" height="110" rx="3" fill="' + shade(col, .12) + '"/><rect x="' + (x + w / 2 - 12) + '" y="166" width="24" height="4" rx="2" fill="' + dark + '"/>' }
+      else s += '<path d="M' + (x + w / 2 - 34) + ' 150h68l-10 30h-48z" fill="#9C958C"/>'
+    }
+    s += '<rect x="' + (x0 - 6) + '" y="220" width="' + (x1 - x0 + 12) + '" height="16" rx="3" fill="' + top + '"/>'
+    var side = function (a, b) {
+      s += '<polygon points="' + a + ',220 ' + b + ',236 ' + b + ',350 ' + a + ',326" fill="' + dark + '"/>'
+      s += '<polygon points="' + a + ',214 ' + b + ',226 ' + b + ',240 ' + a + ',236" fill="' + top + '"/>'
+    }
+    if (shape >= 1) side(x0 - 6, 40)
+    if (shape === 2) side(x1 + 6, 760)
+    var tag = (C.shapes ? C.shapes.items[shape].name + ', ' : '') + L + ' м' + (C.swatches ? ', ' + C.swatches.items[st.sw][0].toLowerCase() : '')
+    return { svg: s, tag: tag }
+  },
+  room: function (st) {
+    var v = C.variants[st.v], i = C.variants.length ? st.v / Math.max(1, C.variants.length - 1) : .5
+    var wall = i < .34 ? '#C9C4BC' : i < .67 ? '#DCD3C6' : '#E7DCCB', floor = i < .34 ? '#A8A39B' : '#B88F68'
+    var s = '<rect width="800" height="400" fill="' + wall + '"/>'
+    s += '<polygon points="0,0 800,0 640,90 160,90" fill="#F3F1EC"/><polygon points="0,0 160,90 160,320 0,400" fill="' + shade(wall, -.08) + '"/><polygon points="800,0 640,90 640,320 800,400" fill="' + shade(wall, -.14) + '"/>'
+    s += '<polygon points="160,320 640,320 800,400 0,400" fill="' + floor + '"/>'
+    if (i >= .34) for (var k = 0; k < 9; k++) s += '<line x1="' + (160 + k * 60) + '" y1="320" x2="' + (k * 100) + '" y2="400" stroke="' + shade(floor, -.12) + '" stroke-width="2"/>'
+    s += '<rect x="430" y="130" width="140" height="120" rx="4" fill="#BFD0E2"/><path d="M500 130v120M430 190h140" stroke="' + wall + '" stroke-width="6"/>'
+    if (i < .34) s += '<rect x="210" y="250" width="90" height="70" fill="#9A8F80"/><path d="M200 320l60-110 60 110" fill="none" stroke="#6B6359" stroke-width="6"/><rect x="330" y="290" width="40" height="30" rx="4" fill="#6B8CB0"/>'
+    else s += '<rect x="200" y="262" width="190" height="56" rx="10" fill="' + (i < .67 ? '#7E8A99' : '#5E6B5A') + '"/><rect x="212" y="238" width="166" height="36" rx="10" fill="' + (i < .67 ? '#97A3B1' : '#76846F') + '"/>'
+    if (i > .67) s += '<rect x="610" y="100" width="4" height="190" fill="#C9A86A"/><ellipse cx="400" cy="96" rx="80" ry="10" fill="#FFF3D1" opacity=".8"/>'
+    return { svg: s, tag: (v ? v.name + ', ' : '') + st.q.area + ' м²' }
+  },
+  ceiling: function (st) {
+    var v = C.variants[st.v] || { name: '' }, nm = v.name.toLowerCase()
+    var gl = /глян|лак/.test(nm), sat = /сатин/.test(nm), color = /цвет/.test(nm)
+    var ceil = color ? '#C9D6F2' : gl ? '#EEF2F8' : '#F7F8FA'
+    var spots = 0, chand = 0
+    C.addons.forEach(function (a, i) { if (/люстр/i.test(a.name)) chand += st.cnt[i]; else if (/светил|точ|спот/i.test(a.name)) spots += st.cnt[i] })
+    if (!C.addons.length) { spots = 4; chand = 1 }
+    var s = '<defs><linearGradient id="wl" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#DCE1E8"/><stop offset="1" stop-color="#C3CAD4"/></linearGradient><linearGradient id="gl" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".85"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><radialGradient id="lp"><stop offset="0" stop-color="#FFF6D8"/><stop offset=".3" stop-color="#FFE9A8" stop-opacity=".7"/><stop offset="1" stop-color="#FFE9A8" stop-opacity="0"/></radialGradient></defs>'
+    s += '<rect width="800" height="400" fill="url(#wl)"/><polygon points="0,0 800,0 640,120 160,120" fill="' + ceil + '"/>'
+    if (gl || sat) s += '<polygon points="0,0 800,0 640,120 160,120" fill="url(#gl)" opacity="' + (gl ? .9 : .4) + '" transform="skewX(-18) translate(120 0)"/>'
+    s += '<polygon points="0,0 160,120 160,330 0,400" fill="#CBD1DA"/><polygon points="800,0 640,120 640,330 800,400" fill="#BAC2CD"/><polygon points="160,330 640,330 800,400 0,400" fill="#9FA8B5"/><rect x="160" y="120" width="480" height="210" fill="#D5DAE2"/><rect x="430" y="170" width="140" height="110" rx="4" fill="#B9C9DD"/><path d="M500 170v110M430 225h140" stroke="#D5DAE2" stroke-width="5"/><rect x="210" y="262" width="180" height="56" rx="10" fill="#8C97A6"/><rect x="222" y="240" width="156" height="34" rx="10" fill="#A3ADBB"/>'
+    var n = Math.min(spots, 12)
+    for (var i = 0; i < n; i++) {
+      var row = i % 2, k = Math.floor(i / 2), cols = Math.ceil(n / 2), t = cols === 1 ? .5 : k / (cols - 1)
+      var y = row ? 92 : 32, x = row ? 220 + t * 360 : 120 + t * 560
+      s += '<ellipse cx="' + x + '" cy="' + (y + 30) + '" rx="46" ry="34" fill="url(#lp)"/><ellipse cx="' + x + '" cy="' + y + '" rx="9" ry="4" fill="#FFFBEA" stroke="#C9CFD8"/>'
+    }
+    for (var j = 0; j < Math.min(chand, 4); j++) {
+      var cx = chand === 1 ? 400 : 260 + j * (280 / (Math.min(chand, 4) - 1))
+      s += '<line x1="' + cx + '" y1="62" x2="' + cx + '" y2="112" stroke="#8C97A6" stroke-width="2"/><path d="M' + (cx - 26) + ' 132 Q' + cx + ' 100 ' + (cx + 26) + ' 132 Z" fill="#F4E9C8"/><ellipse cx="' + cx + '" cy="150" rx="60" ry="30" fill="url(#lp)"/>'
+    }
+    return { svg: s, tag: (v.name ? v.name + ', ' : '') + st.q.area + ' м²' }
+  },
+  sign: function (st) {
+    var v = C.variants[st.v] || { name: '' }, nm = v.name.toLowerCase()
+    var box = /короб|лайтбокс|панел/.test(nm), vol = /объ[её]м|букв/.test(nm), lit = /свет|подсвет|неон|лайт|контражур/.test(nm) || box
+    var txt = (st.text || C.name).trim() || C.name
+    var fs = Math.max(26, Math.min(72, 560 / Math.max(4, txt.length) * 1.7))
+    var s = '<rect width="800" height="400" fill="' + (lit ? '#2B2F3A' : '#9AA3AF') + '"/>'
+    for (var r = 0; r < 8; r++) s += '<line x1="0" y1="' + (r * 50 + 25) + '" x2="800" y2="' + (r * 50 + 25) + '" stroke="' + (lit ? '#343949' : '#8D96A3') + '" stroke-width="2"/>'
+    s += '<rect x="250" y="210" width="300" height="190" fill="' + (lit ? '#3C4252' : '#C9D0D9') + '"/><rect x="270" y="230" width="120" height="170" fill="' + (lit ? '#FFE7A8' : '#E8EDF2') + '" opacity="' + (lit ? .55 : 1) + '"/><rect x="410" y="230" width="120" height="170" fill="' + (lit ? '#FFE7A8' : '#E8EDF2') + '" opacity="' + (lit ? .55 : 1) + '"/>'
+    if (box) s += '<rect x="90" y="70" width="620" height="110" rx="10" fill="#fff"/><rect x="90" y="70" width="620" height="110" rx="10" fill="none" style="stroke:var(--acc)" stroke-width="8"/>'
+    else s += '<rect x="90" y="70" width="620" height="110" fill="' + (lit ? '#232733' : '#7F8996') + '" opacity=".5"/>'
+    var fill = box ? '#1d1d1f' : lit ? '#FFF6D8' : '#fff'
+    var glow = lit && !box ? ' style="filter:drop-shadow(0 0 10px #FFD36B)"' : ''
+    if (vol) s += '<text x="404" y="' + (125 + fs * .35 + 4) + '" text-anchor="middle" font-family="Manrope,sans-serif" font-weight="800" font-size="' + fs + '" fill="#000" opacity=".35">' + esc2(txt) + '</text>'
+    s += '<text x="400" y="' + (125 + fs * .35) + '" text-anchor="middle" font-family="Manrope,sans-serif" font-weight="800" font-size="' + fs + '" fill="' + fill + '"' + glow + '>' + esc2(txt) + '</text>'
+    return { svg: s, tag: (v.name ? v.name + ', ' : '') + AMT.sign(st, (txt.match(/[0-9A-Za-zА-Яа-яЁё&]/g) || []).length) }
+  }
+}
+function esc2(s) { return String(s).replace(/[&<>]/g, function (x) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[x] }) }
+
+</script>
+<script>
+var C = {"pic": "kitchen", "name": "Мадиго", "phone": "+7-919-279-25-59", "address": "Сумская улица, 36", "text": {"h1": "Расскажите, какая нужна кухня, и мы назовём цену", "lead": "Укажите длину, форму и цвет. Отправьте нам, и мы ответим с ценой и предложим время замера.", "qtyTitle": "Длина гарнитура", "qtyHint": "по всем стенам, в метрах", "variantTitle": "Модель", "variantHint": "цена за погонный метр", "addonTitle": "Дополнительно", "sumLabel": "Ваша кухня", "cond": "Это ориентир по прайсу. Точную цену назовём после замера и проекта.", "condAsk": "Цену назовём после замера: напишите, и мы перезвоним.", "formTitle": "Записаться на замер", "button": "Отправить заявку", "photosTitle": "Наши кухни"}, "qty": [{"k": "len", "label": "Длина кухни", "unit": "м", "min": 1, "max": 15, "rmax": 8, "step": 0.1, "deff": 3, "def": 3}], "variants": [], "addons": [], "priceList": [], "photos": ["p1.jpg", "p2.jpg", "p3.jpg", "p4.jpg"], "minimum": 0, "priceNote": "Цены из карточки компании в 2ГИС.", "shapes": {"title": "Форма", "items": [{"name": "Прямая"}, {"name": "Угловая", "sub": "Г-образная"}, {"name": "П-образная"}]}, "swatches": {"title": "Цвет фасадов", "items": [["Светлый беж", "#D8CBB5"], ["Белый", "#F4F2EE"], ["Графит", "#4A4D52"], ["Олива", "#7C8466"], ["Дуб", "#B08A62"]]}};
+(function () {
+  var $ = function (id) { return document.getElementById(id) }
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (x) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[x] }) }
+  var rub = function (n) { return Math.round(n).toLocaleString('ru-RU').replace(/[, ]/g, ' ') + ' ₽' }
+  var T = C.text
+  $('h1').textContent = T.h1; $('lead').textContent = T.lead; $('sum-h').textContent = T.sumLabel
+  $('fh').textContent = T.formTitle; $('goBtn').textContent = T.button; $('mlbl').textContent = T.sumLabel
+
+  // ---------------- поля
+  var st = { v: 0, opt: {}, cnt: {}, q: {}, sw: 0, text: C.signText || '' }
+  var box = $('inputs'), h = ''
+  C.qty.forEach(function (q) { st.q[q.k] = q.def })
+  if (C.signText !== undefined) h += '<fieldset><legend>Текст вывески <span class="hint">буквы считаются сами</span></legend><input class="txt" id="sText" maxlength="40" value="' + esc(C.signText) + '" aria-label="Текст вывески"></fieldset>'
+  if (C.qty.length) {
+    h += '<fieldset><legend>' + esc(T.qtyTitle) + (T.qtyHint ? ' <span class="hint">' + esc(T.qtyHint) + '</span>' : '') + '</legend>'
+    C.qty.forEach(function (q) {
+      h += '<div class="qty">' + (C.qty.length > 1 ? '<span class="ql">' + esc(q.label) + '</span>' : '') +
+        '<input type="range" data-q="' + q.k + '" min="' + q.min + '" max="' + q.rmax + '" step="' + q.step + '" value="' + q.def + '" aria-label="' + esc(q.label) + '">' +
+        '<label class="num"><input type="number" data-qn="' + q.k + '" min="' + q.min + '" max="' + q.max + '" step="' + q.step + '" value="' + q.def + '" inputmode="decimal" aria-label="' + esc(q.label) + '"><span>' + q.unit + '</span></label></div>'
+    })
+    h += '</fieldset>'
+  }
+  if (C.shapes) {
+    h += '<fieldset><legend>' + esc(C.shapes.title) + '</legend><div class="seg sm" role="radiogroup">'
+    C.shapes.items.forEach(function (s, i) { h += '<label><input type="radio" name="shape" value="' + i + '"' + (i ? '' : ' checked') + '><span>' + esc(s.name) + (s.sub ? '<small>' + esc(s.sub) + '</small>' : '') + '</span></label>' })
+    h += '</div></fieldset>'; st.shape = 0
+  }
+  if (C.variants.length) {
+    h += '<fieldset><legend>' + esc(T.variantTitle) + (T.variantHint ? ' <span class="hint">' + esc(T.variantHint) + '</span>' : '') + '</legend><div class="seg" role="radiogroup">'
+    C.variants.forEach(function (v, i) { h += '<label><input type="radio" name="var" value="' + i + '"' + (i ? '' : ' checked') + '><span>' + esc(v.name) + (v.price ? '<small>' + (v.from ? 'от ' : '') + rub(v.price) + ' ' + esc(v.per) + '</small>' : (v.sub ? '<small>' + esc(v.sub) + '</small>' : '')) + '</span></label>' })
+    h += '</div></fieldset>'
+  }
+  if (C.swatches) {
+    h += '<fieldset><legend>' + esc(C.swatches.title) + ' <span class="hint">для картинки, на цену не влияет</span></legend><div class="sw" role="radiogroup">'
+    C.swatches.items.forEach(function (s, i) { h += '<label title="' + esc(s[0]) + '"><input type="radio" name="sw" value="' + i + '"' + (i ? '' : ' checked') + ' aria-label="' + esc(s[0]) + '"><span style="background:' + s[1] + '"></span></label>' })
+    h += '</div></fieldset>'
+  }
+  if (C.addons.length) {
+    h += '<fieldset><legend>' + esc(T.addonTitle) + '</legend>'
+    C.addons.forEach(function (a, i) {
+      st.cnt[i] = a.def || 0
+      h += '<div class="cnt"><div><b>' + esc(a.name) + '</b><small>' + (a.price ? (a.from ? 'от ' : '') + rub(a.price) + ' ' + esc(a.per || 'за шт.') : 'цену уточняйте') + '</small></div><div class="step" data-a="' + i + '"><button type="button" aria-label="Меньше">−</button><output>' + st.cnt[i] + '</output><button type="button" aria-label="Больше">+</button></div></div>'
+    })
+    h += '</fieldset>'
+  }
+  box.insertAdjacentHTML('beforeend', h)
+
+  // ---------------- расчёт
+  function amount() { var a = 1; C.qty.forEach(function (q) { a *= st.q[q.k] }); if (C.lettersMul) a *= letters(); return a }
+  function letters() { return (st.text.match(/[0-9A-Za-zА-Яа-яЁё&]/g) || []).length }
+  function calc() {
+    var r = [], t = 0, known = true, v = C.variants[st.v]
+    if (v && v.price) {
+      var a = amount(), s = a * v.price
+      r.push([v.name + ', ' + AMT[C.pic](st, letters()), s]); t += s
+    } else { known = false; r.push([(v ? v.name + ', ' : '') + AMT[C.pic](st, letters()), null]) }
+    C.addons.forEach(function (ad, i) {
+      if (!st.cnt[i]) return
+      if (ad.price) { r.push([ad.name + ', ' + st.cnt[i] + ' шт.', st.cnt[i] * ad.price]); t += st.cnt[i] * ad.price }
+      else r.push([ad.name + ', ' + st.cnt[i] + ' шт.', null])
+    })
+    var from = (v && v.from) || C.addons.some(function (ad, i) { return st.cnt[i] && ad.from })
+    if (known && C.minimum && t < C.minimum) { r.push(['До минимального заказа', C.minimum - t]); t = C.minimum }
+    return { rows: r, total: t, known: known, from: from }
+  }
+  function draw() {
+    var c = calc(), big = $('total')
+    var txt = c.known ? (c.from ? 'от ' : '') + rub(c.total) : 'Цену уточняйте'
+    big.textContent = txt; big.classList.toggle('ask', !c.known); $('total2').textContent = txt
+    $('rows').innerHTML = c.rows.map(function (x) { return '<div><dt>' + esc(x[0]) + '</dt><dd>' + (x[1] == null ? 'уточняйте' : rub(x[1])) + '</dd></div>' }).join('')
+    $('cond').textContent = c.known ? T.cond : T.condAsk
+    document.querySelectorAll('.step').forEach(function (s) { s.querySelector('output').textContent = st.cnt[s.dataset.a] })
+    var p = PIC[C.pic](st, c); $('svg').innerHTML = p.svg; $('tag').textContent = p.tag
+  }
+  function setQ(k, v, from) {
+    var q = C.qty.filter(function (x) { return x.k === k })[0]
+    v = Math.max(q.min, Math.min(q.max, Math.round((+v || 0) / q.step) * q.step))
+    v = +v.toFixed(2); st.q[k] = v
+    if (from !== 'r') document.querySelector('[data-q="' + k + '"]').value = Math.min(q.rmax, v)
+    if (from !== 'n') document.querySelector('[data-qn="' + k + '"]').value = v
+    draw()
+  }
+  document.querySelectorAll('[data-q]').forEach(function (i) { i.addEventListener('input', function () { setQ(i.dataset.q, i.value, 'r') }) })
+  document.querySelectorAll('[data-qn]').forEach(function (i) {
+    i.addEventListener('change', function () { setQ(i.dataset.qn, i.value) })
+    i.addEventListener('input', function () { var q = C.qty.filter(function (x) { return x.k === i.dataset.qn })[0]; if (+i.value >= q.min) setQ(i.dataset.qn, i.value, 'n') })
+  })
+  document.querySelectorAll('input[name=var]').forEach(function (i) { i.addEventListener('change', function () { st.v = +i.value; draw() }) })
+  document.querySelectorAll('input[name=shape]').forEach(function (i) { i.addEventListener('change', function () { st.shape = +i.value; draw() }) })
+  document.querySelectorAll('input[name=sw]').forEach(function (i) { i.addEventListener('change', function () { st.sw = +i.value; draw() }) })
+  if ($('sText')) $('sText').addEventListener('input', function () { st.text = this.value; draw() })
+  document.querySelectorAll('.step').forEach(function (s) {
+    var k = s.dataset.a, b = s.querySelectorAll('button')
+    b[0].onclick = function () { st.cnt[k] = Math.max(0, st.cnt[k] - 1); draw() }
+    b[1].onclick = function () { st.cnt[k] = Math.min(50, st.cnt[k] + 1); draw() }
+  })
+
+  // ---------------- нижние блоки: фото, прайс, контакты
+  var m = ''
+  if (C.photos && C.photos.length) m += '<div class="panel"><h2>' + esc(T.photosTitle) + '</h2><div class="ph">' + C.photos.map(function (p) { return '<img src="' + p + '" alt="' + esc(T.photosTitle) + ', «' + esc(C.name) + '»" loading="lazy" width="900" height="675">' }).join('') + '</div></div>'
+  if (C.priceList && C.priceList.length) m += '<div class="panel"><h2>Цены</h2><dl class="plist">' + C.priceList.map(function (p) { return '<div><dt>' + esc(p.name) + '</dt><dd>' + (p.price ? (p.from ? 'от ' : '') + rub(p.price) : 'уточняйте') + '</dd></div>' }).join('') + '</dl><p class="src">' + esc(C.priceNote) + '</p></div>'
+  m += '<div class="panel"><h2>Контакты</h2><div class="contacts"><span>Телефон: <b>' + esc(C.phone) + '</b></span>' + (C.address ? '<span>Адрес: <b>' + esc(C.address) + '</b></span>' : '') + '</div></div>'
+  $('more').innerHTML = m
+
+  // ---------------- заявка
+  $('form').addEventListener('submit', function (e) {
+    e.preventDefault()
+    var name = $('name').value.trim(), d = $('phone').value.replace(/\D/g, '')
+    $('fName').classList.toggle('bad', !name)
+    var okP = d.length >= 10 && d.length <= 11
+    $('fPhone').classList.toggle('bad', !okP)
+    if (!name) return $('name').focus()
+    if (!okP) return $('phone').focus()
+    if (d.length === 10) d = '7' + d
+    if (d[0] === '8') d = '7' + d.slice(1)
+    var ph = '+' + d[0] + ' ' + d.slice(1, 4) + ' ' + d.slice(4, 7) + '-' + d.slice(7, 9) + '-' + d.slice(9, 11)
+    var c = calc(), mm = document.querySelector('input[name=m]:checked').value
+    $('owner').innerHTML = '<b>Новая заявка с калькулятора</b>\n' + esc(name) + ', ' + ph + '\nОтветить: ' + mm + '\n\n' +
+      c.rows.map(function (x) { return esc(x[0]) }).join('\n') + '\n<b>' + (c.known ? 'Итого: ' + (c.from ? 'от ' : '') + rub(c.total) : 'Цену уточнить') + '</b>'
+    $('form').hidden = true
+    $('done').classList.add('show')
+    var h2 = $('done').querySelector('h2'); h2.setAttribute('tabindex', '-1'); h2.focus()
+  })
+  $('again').onclick = function () { $('done').classList.remove('show'); $('form').hidden = false; $('name').focus() }
+
+  draw()
+  if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { $('mbar').classList.toggle('off', e[0].isIntersecting) }, { threshold: .15 }).observe($('sum'))
+})()
+</script>
+</body>
+</html>
