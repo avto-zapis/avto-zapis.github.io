@@ -32,6 +32,11 @@ a { color:inherit }
 .intro { max-width:1240px; margin:0 auto; padding:34px clamp(16px,4vw,40px) 22px }
 .intro h1 { font-size:clamp(30px,4.4vw,56px); line-height:1.04; letter-spacing:-.035em; font-weight:800; max-width:18ch; text-wrap:balance }
 .intro p { color:var(--sub); margin-top:12px; max-width:54ch }
+.tabs { display:inline-flex; gap:4px; padding:4px; margin-bottom:22px; background:var(--panel); border-radius:16px; border:1.5px solid var(--line) }
+.tabs a { display:block; min-width:104px; padding:10px 18px; border-radius:12px; text-align:center; font-weight:700; text-decoration:none; color:var(--sub) }
+.tabs a:hover { color:var(--ink); background:var(--soft) }
+.tabs a[aria-current] { background:var(--acc); color:var(--on-acc) }
+@media (max-width:420px) { .tabs { display:flex } .tabs a { flex:1; min-width:0 } }
 
 .calc { max-width:1240px; margin:0 auto; padding:0 clamp(16px,4vw,40px) 40px; display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr); gap:20px; align-items:start }
 @media (max-width:900px) { .calc { grid-template-columns:minmax(0,1fr) } }
@@ -143,7 +148,7 @@ form h2 { font-size:20px; letter-spacing:-.02em }
 </style>
 </head>
 <body>
-<div class="demo-bar">Пример калькулятора для «Domamebel», сделан в Nish Studio. Заявки пока никуда не уходят. <a href="../nish/">Nish Studio</a></div>
+<div class="demo-bar">Пример калькулятора для «Domamebel», сделан в Nish Studio. Заявки пока никуда не уходят. <a href="/nish/">Nish Studio</a></div>
 
 <header class="top">
   <a class="logo" href="#"><i>D</i><span><b>Domamebel</b><small>Кухни на заказ, Курск</small></span></a>
@@ -151,6 +156,7 @@ form h2 { font-size:20px; letter-spacing:-.02em }
 </header>
 
 <section class="intro">
+  <nav class="tabs" id="tabs" aria-label="Что считаем" hidden></nav>
   <h1 id="h1"></h1>
   <p id="lead"></p>
 </section>
@@ -197,7 +203,8 @@ var AMT = {
   kitchen: function (st) { return st.q.len + ' м' },
   room: function (st) { return st.q.area + ' м²' },
   ceiling: function (st) { return st.q.area + ' м²' },
-  sign: function (st, n) { return C.lettersMul ? n + ' букв, высота ' + st.q.h + ' см' : (st.q.w + ' × ' + st.q.h + ' м') }
+  sign: function (st, n) { return C.lettersMul ? n + ' букв, высота ' + st.q.h + ' см' : (st.q.w + ' × ' + st.q.h + ' м') },
+  wardrobe: function (st) { return st.q.w + ' × ' + st.q.h + ' × ' + st.q.d + ' см' }
 }
 function shade(hex, k) {
   var n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255
@@ -282,11 +289,42 @@ var PIC = {
     return { svg: s, tag: (v.name ? v.name + ', ' : '') + AMT.sign(st, (txt.match(/[0-9A-Za-zА-Яа-яЁё&]/g) || []).length) }
   }
 }
+PIC.wardrobe = function (st) {
+  var v = C.variants[st.v] || { name: '' }, coupe = /купе/i.test(v.name)
+  var mir = 0
+  C.addons.forEach(function (a, i) { if (/зеркал/i.test(a.name)) mir = st.cnt[i] })
+  var W = st.q.w, H = st.q.h, D = st.q.d
+  var k = Math.min(520 / W, 270 / H), pw = W * k, ph = H * k, pd = Math.max(12, Math.min(60, D * k * .45))
+  var x0 = 400 - pw / 2, y1 = 340, y0 = y1 - ph
+  var n = coupe ? Math.max(2, Math.min(6, Math.round(W / 90))) : Math.max(1, Math.min(10, Math.round(W / 50)))
+  var body = '#E9E3D8', door = '#D9CDBA', edge = '#B9AA93'
+  var s = '<defs><linearGradient id="mr" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#E4EEF6"/><stop offset=".55" stop-color="#C3D3E2"/><stop offset="1" stop-color="#DCE7F1"/></linearGradient></defs>'
+  s += '<rect width="800" height="400" fill="#ECE7DF"/><rect y="340" width="800" height="60" fill="#C9BBA6"/>'
+  s += '<polygon points="' + (x0 + pw) + ',' + y0 + ' ' + (x0 + pw + pd) + ',' + (y0 - pd * .5) + ' ' + (x0 + pw + pd) + ',' + (y1 - pd * .5) + ' ' + (x0 + pw) + ',' + y1 + '" fill="' + edge + '"/>'
+  s += '<polygon points="' + x0 + ',' + y0 + ' ' + (x0 + pd) + ',' + (y0 - pd * .5) + ' ' + (x0 + pw + pd) + ',' + (y0 - pd * .5) + ' ' + (x0 + pw) + ',' + y0 + '" fill="#F3EFE8"/>'
+  s += '<rect x="' + x0 + '" y="' + y0 + '" width="' + pw + '" height="' + ph + '" fill="' + body + '"/>'
+  var dw = (pw - 8) / n
+  for (var i = 0; i < n; i++) {
+    var x = x0 + 4 + i * dw, fill = i < mir ? 'url(#mr)' : door
+    if (coupe) {
+      var ov = i ? 6 : 0
+      s += '<rect x="' + (x - ov) + '" y="' + (y0 + 8) + '" width="' + (dw + ov) + '" height="' + (ph - 16) + '" rx="2" fill="' + fill + '" stroke="' + edge + '" stroke-width="2"/>'
+      s += '<rect x="' + (x + 4) + '" y="' + (y0 + ph / 2 - 26) + '" width="4" height="52" rx="2" fill="#9C8E78"/>'
+    } else {
+      s += '<rect x="' + (x + 2) + '" y="' + (y0 + 6) + '" width="' + (dw - 4) + '" height="' + (ph - 12) + '" rx="3" fill="' + fill + '"/>'
+      var hx = i % 2 ? x + 10 : x + dw - 14
+      s += '<rect x="' + hx + '" y="' + (y0 + ph / 2 - 18) + '" width="4" height="36" rx="2" fill="#9C8E78"/>'
+    }
+  }
+  if (coupe) s += '<rect x="' + x0 + '" y="' + (y0 + 2) + '" width="' + pw + '" height="6" fill="' + edge + '"/><rect x="' + x0 + '" y="' + (y1 - 8) + '" width="' + pw + '" height="6" fill="' + edge + '"/>'
+  var tag = (v.name ? v.name + ', ' : '') + W + ' × ' + H + ' × ' + D + ' см' + (mir ? ', зеркал: ' + Math.min(mir, n) : '')
+  return { svg: s, tag: tag }
+}
 function esc2(s) { return String(s).replace(/[&<>]/g, function (x) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[x] }) }
 
 </script>
 <script>
-var C = {"pic": "kitchen", "name": "Domamebel", "phone": "+7-950-875-23-46", "address": "улица 50 лет Октября, 98", "text": {"h1": "Сколько стоит ваша кухня, узнаете за минуту", "lead": "Укажите длину и выберите модель. Цена считается по нашему прайсу, а расчёт можно отправить нам и записаться на замер.", "qtyTitle": "Длина гарнитура", "qtyHint": "по всем стенам, в метрах", "variantTitle": "Модель", "variantHint": "цена за погонный метр", "addonTitle": "Дополнительно", "sumLabel": "Ваша кухня", "cond": "Это ориентир по прайсу. Точную цену назовём после замера и проекта.", "condAsk": "Цену назовём после замера: напишите, и мы перезвоним.", "formTitle": "Записаться на замер", "button": "Отправить расчёт", "photosTitle": "Наши кухни"}, "qty": [{"k": "len", "label": "Длина кухни", "unit": "м", "min": 1, "max": 15, "rmax": 8, "step": 0.1, "deff": 3, "def": 3}], "variants": [{"name": "Кухня на заказ", "price": 18000, "unit": "mp", "per": "за пог. м", "from": false}], "addons": [], "priceList": [{"name": "Кухня на заказ, за погонный метр", "price": 18000}, {"name": "Кухня для квартиры КПД", "price": 81000}, {"name": "Встроенный шкаф-купе", "price": 44000}], "photos": ["p1.jpg", "p2.jpg", "p3.jpg", "p4.jpg", "p5.jpg"], "minimum": 0, "priceNote": "Цены из карточки компании в Яндекс Картах (обновлены 2021-07-06).", "shapes": {"title": "Форма", "items": [{"name": "Прямая"}, {"name": "Угловая", "sub": "Г-образная"}, {"name": "П-образная"}]}, "swatches": {"title": "Цвет фасадов", "items": [["Светлый беж", "#D8CBB5"], ["Белый", "#F4F2EE"], ["Графит", "#4A4D52"], ["Олива", "#7C8466"], ["Дуб", "#B08A62"]]}};
+var C = {"pic": "kitchen", "name": "Domamebel", "phone": "+7-950-875-23-46", "address": "улица 50 лет Октября, 98", "text": {"h1": "Сколько стоит ваша кухня, узнаете за минуту", "lead": "Укажите длину и выберите модель. Цена считается по нашему прайсу, а расчёт можно отправить нам и записаться на замер.", "qtyTitle": "Длина гарнитура", "qtyHint": "по всем стенам, в метрах", "variantTitle": "Модель", "variantHint": "цена за погонный метр", "addonTitle": "Дополнительно", "sumLabel": "Ваша кухня", "cond": "Это ориентир по прайсу. Точную цену назовём после замера и проекта.", "condAsk": "Цену назовём после замера: напишите, и мы перезвоним.", "formTitle": "Записаться на замер", "button": "Отправить расчёт", "photosTitle": "Наши кухни"}, "qty": [{"k": "len", "label": "Длина кухни", "unit": "м", "min": 1, "max": 15, "rmax": 8, "step": 0.1, "deff": 3, "def": 3}], "variants": [{"name": "Кухня на заказ", "price": 18000, "unit": "mp", "per": "за пог. м", "from": false}], "addons": [], "priceList": [{"name": "Кухня на заказ, за погонный метр", "price": 18000}, {"name": "Кухня для квартиры КПД", "price": 81000}, {"name": "Встроенный шкаф-купе", "price": 44000}], "photos": ["p1.jpg", "p2.jpg", "p3.jpg", "p4.jpg", "p5.jpg"], "minimum": 0, "priceNote": "Цены из карточки компании в Яндекс Картах (обновлены 2021-07-06).", "tabs": [{"label": "Кухни", "href": "./", "on": true}, {"label": "Шкафы", "href": "shkafy/", "on": false}], "shapes": {"title": "Форма", "items": [{"name": "Прямая"}, {"name": "Угловая", "sub": "Г-образная"}, {"name": "П-образная"}]}, "swatches": {"title": "Цвет фасадов", "items": [["Светлый беж", "#D8CBB5"], ["Белый", "#F4F2EE"], ["Графит", "#4A4D52"], ["Олива", "#7C8466"], ["Дуб", "#B08A62"]]}};
 (function () {
   var $ = function (id) { return document.getElementById(id) }
   var esc = function (s) { return String(s).replace(/[&<>"]/g, function (x) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[x] }) }
@@ -294,6 +332,7 @@ var C = {"pic": "kitchen", "name": "Domamebel", "phone": "+7-950-875-23-46", "ad
   var T = C.text
   $('h1').textContent = T.h1; $('lead').textContent = T.lead; $('sum-h').textContent = T.sumLabel
   $('fh').textContent = T.formTitle; $('goBtn').textContent = T.button; $('mlbl').textContent = T.sumLabel
+  if (C.tabs) { $('tabs').innerHTML = C.tabs.map(function (t) { return '<a href="' + esc(t.href) + '"' + (t.on ? ' aria-current="page"' : '') + '>' + esc(t.label) + '</a>' }).join(''); $('tabs').hidden = false }
 
   // ---------------- поля
   var st = { v: 0, opt: {}, cnt: {}, q: {}, sw: 0, text: C.signText || '' }
