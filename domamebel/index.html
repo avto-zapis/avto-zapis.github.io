@@ -339,11 +339,11 @@ PIC.cabinet = function (st) {
   var cnt = function (re) { var n = 0; C.addons.forEach(function (a, i) { if (re.test(a.name)) n = st.cnt[i] }); return n }
   var shelves = cnt(/полк/i), rods = cnt(/штанг/i), drawers = cnt(/ящик/i)
   var L = st.q.l, H = st.q.h, D = st.q.d
-  var k = Math.min(500 / L, 280 / H), pw = L * k, ph = H * k, pd = Math.max(12, Math.min(60, D * k * .45))
-  var x0 = 400 - pw / 2 - pd / 2, y1 = 345, y0 = y1 - ph, t = 7
+  var k = Math.min(500 / L, 250 / H), pw = L * k, ph = H * k, pd = Math.max(12, Math.min(60, D * k * .45))
+  var x0 = 400 - pw / 2 - pd / 2, y1 = 300, y0 = y1 - ph, t = 7
   var edge = '#B9AA93', body = '#E3D8C6', inner = '#F6F1E9', shelf = '#CDBFA8'
   var n = Math.max(1, Math.min(6, Math.round(L / 70))), sw = (pw - t * (n + 1)) / n
-  var s = '<rect width="800" height="400" fill="#ECE7DF"/><rect y="345" width="800" height="55" fill="#C9BBA6"/>'
+  var s = '<rect width="800" height="400" fill="#ECE7DF"/><rect y="300" width="800" height="100" fill="#C9BBA6"/>'
   s += '<polygon points="' + (x0 + pw) + ',' + y0 + ' ' + (x0 + pw + pd) + ',' + (y0 - pd * .5) + ' ' + (x0 + pw + pd) + ',' + (y1 - pd * .5) + ' ' + (x0 + pw) + ',' + y1 + '" fill="' + edge + '"/>'
   s += '<polygon points="' + x0 + ',' + y0 + ' ' + (x0 + pd) + ',' + (y0 - pd * .5) + ' ' + (x0 + pw + pd) + ',' + (y0 - pd * .5) + ' ' + (x0 + pw) + ',' + y0 + '" fill="#F3EFE8"/>'
   s += '<rect x="' + x0 + '" y="' + y0 + '" width="' + pw + '" height="' + ph + '" fill="' + body + '"/>'
