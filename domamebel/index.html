@@ -11,11 +11,15 @@ var SETTINGS = {
     { name: 'ЛДСП 18 мм', price: 0 },
     { name: 'МДФ 16 мм', price: 0 }
   ],
-  thickness: 16,   // толщина плиты, мм (для ширины секций и крыши/дна)
-  edge: 0,         // кромка, ₽ за погонный метр (клеится по переднему краю детали)
-  drawer: 0,       // ящик, ₽ за шт.
-  rod: 0,          // штанга, ₽ за шт.
-  markup: 0        // наценка, %
+  thickness: 16,     // толщина плиты, мм
+  wasteFactor: 1.15, // коэффициент на обрезки: цена материала считается от площади × этот коэффициент
+  edge: 0,           // кромка, ₽ за погонный метр (клеится по переднему краю детали)
+  drawer: 0,         // ящик, ₽ за шт.
+  rod: 0,            // штанга, ₽ за шт.
+  markup: 0,         // наценка, %
+  minSection: 100,   // самая узкая секция, мм (ближе стойку не поставить)
+  drawerHeight: 150, // высота нового ящика по умолчанию, мм
+  rodSpace: 30       // сколько места по высоте занимает штанга, мм
 }
 // ==========================================================================
 </script>
@@ -28,96 +32,106 @@ var SETTINGS = {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root { --bg:#EDEBF0; --panel:#FFFFFF; --ink:#24212B; --sub:#655F70; --line:#DAD6E0; --soft:#F5F3F8; --acc:#5B43B5; --acc-soft:#E9E4F8; --acc-ink:#46329A; --on-acc:#FFFFFF; --warn:#8A5A00; --warn-bg:#FFF4D6 }
+:root { --bg:#EDEBF0; --panel:#FFFFFF; --ink:#24212B; --sub:#655F70; --line:#DAD6E0; --soft:#F5F3F8; --acc:#5B43B5; --acc-soft:#E9E4F8; --acc-ink:#46329A; --on-acc:#FFFFFF; --warn:#8A5A00; --warn-bg:#FFF4D6; --bad:#B42318 }
 * { box-sizing:border-box; margin:0; padding:0 }
 html { -webkit-text-size-adjust:100% }
 body { background:var(--bg); color:var(--ink); font:500 15.5px/1.45 'Manrope', system-ui, sans-serif; -webkit-font-smoothing:antialiased }
 button, input, select { font:inherit; color:inherit }
 button { cursor:pointer }
 :focus-visible { outline:3px solid var(--acc); outline-offset:2px; border-radius:8px }
+.sr { position:absolute; left:-9999px }
 .demo-bar { padding:8px 16px; background:var(--ink); color:#fff; font-size:13.5px; text-align:center }
 .demo-bar a { color:#fff; font-weight:700 }
-.wrap { max-width:1240px; margin:0 auto; padding:0 clamp(12px,3vw,32px) }
+.wrap { max-width:1280px; margin:0 auto; padding:0 clamp(12px,3vw,32px) }
 .top { display:flex; align-items:center; gap:14px; justify-content:space-between; flex-wrap:wrap; padding:18px 0 14px }
 .logo { display:flex; align-items:center; gap:12px }
 .logo i { width:40px; height:40px; border-radius:12px; background:var(--ink); color:#fff; display:grid; place-items:center; font-style:normal; font-weight:800; font-size:19px }
 .logo b { display:block; font-weight:800; font-size:20px; letter-spacing:-.02em; line-height:1.1 }
 .logo small { color:var(--sub); font-weight:600; font-size:13.5px }
-.badge { display:none; align-items:center; gap:8px; background:var(--warn-bg); color:var(--warn); border-radius:12px; padding:8px 12px; font-weight:700; font-size:14px }
-.badge.on { display:inline-flex }
-.grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:16px; align-items:start }
-@media (max-width:860px) { .grid { grid-template-columns:minmax(0,1fr) } }
+.badge { display:none; background:var(--warn-bg); color:var(--warn); border-radius:12px; padding:8px 12px; font-weight:700; font-size:14px }
+.badge.on { display:inline-block }
+.grid { display:grid; grid-template-columns:minmax(0,5fr) minmax(0,6fr); gap:16px; align-items:start }
+@media (max-width:900px) { .grid { grid-template-columns:minmax(0,1fr) } }
 .panel { background:var(--panel); border-radius:20px; padding:clamp(14px,2.2vw,24px); min-width:0 }
-.panel + .panel, .grid + .panel { margin-top:16px }
+.stack > .panel + .panel { margin-top:16px }
+.wrap > .panel { margin-top:16px }
 h2 { font-size:17px; font-weight:800; letter-spacing:-.01em; margin-bottom:12px }
-.dims { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px }
-.fld label { display:block; font-weight:700; font-size:13.5px; color:var(--sub); margin-bottom:5px }
+.three { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px }
+.two { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; margin-top:12px }
+.fld label { display:block; font-weight:700; font-size:13px; color:var(--sub); margin-bottom:5px }
 .inp { display:flex; align-items:center; border:1.5px solid var(--line); border-radius:12px; background:var(--soft); padding:0 10px }
 .inp:focus-within { border-color:var(--acc); background:#fff }
-.inp input { width:100%; min-width:0; border:0; background:none; padding:10px 0; font-weight:800; font-size:18px; font-variant-numeric:tabular-nums }
+.inp input { width:100%; min-width:0; border:0; background:none; padding:10px 0; font-weight:800; font-size:17px; font-variant-numeric:tabular-nums }
+.inp input::placeholder { color:#9A94A5; font-weight:600 }
 .inp input:focus { outline:none }
 .inp span { color:var(--sub); font-size:13px; margin-left:4px }
 select { width:100%; border:1.5px solid var(--line); border-radius:12px; background:var(--soft); padding:10px; font-weight:700 }
-.row2 { display:grid; grid-template-columns:minmax(0,1fr) 120px; gap:10px; margin-top:14px }
-.adds { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-top:16px }
-@media (max-width:480px) { .adds { grid-template-columns:repeat(2,minmax(0,1fr)) } .dims { grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr); gap:6px } .inp input { font-size:16px } }
+.adds { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-top:14px }
+@media (max-width:480px) { .adds { grid-template-columns:repeat(2,minmax(0,1fr)) } .three { gap:6px } .inp input { font-size:16px } }
 .add { border:1.5px solid var(--acc); color:var(--acc-ink); background:var(--acc-soft); border-radius:12px; padding:11px 8px; font-weight:800 }
 .add:hover { background:var(--acc); color:var(--on-acc) }
 .hint { color:var(--sub); font-size:13px; margin-top:10px }
-.scheme { background:var(--soft); border-radius:14px; overflow:hidden }
+.toast { color:#14804A; font-weight:700; font-size:14px; min-height:20px; margin-top:8px }
+.toast.bad { color:var(--bad) }
+
+.scheme { background:var(--soft); border-radius:14px; overflow:hidden; touch-action:none; user-select:none; -webkit-user-select:none }
 .scheme svg { display:block; width:100%; height:auto }
+.scheme [data-drag] { cursor:grab }
+.scheme [data-drag="v"] { cursor:ns-resize } .scheme [data-drag="h"] { cursor:ew-resize }
+.scheme .sec { cursor:pointer }
 .legend { display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:10px; color:var(--sub); font-size:13px }
 .legend i { display:inline-block; width:12px; height:12px; border-radius:3px; vertical-align:-1px; margin-right:5px }
 
-.tbl { overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 -4px; padding:0 4px }
-table { width:100%; border-collapse:collapse; min-width:640px; font-variant-numeric:tabular-nums }
+.tbl { overflow-x:auto; -webkit-overflow-scrolling:touch }
+table { width:100%; border-collapse:collapse; min-width:760px; font-variant-numeric:tabular-nums }
 th { text-align:left; font-size:12.5px; color:var(--sub); font-weight:700; padding:8px 6px; border-bottom:1.5px solid var(--line); white-space:nowrap }
 td { padding:6px; border-bottom:1px solid var(--line); vertical-align:middle }
 td.num, th.num { text-align:right; white-space:nowrap }
 td .nm { font-weight:700 }
 td .sub { display:block; color:var(--sub); font-size:12px; font-weight:600 }
-.sz { display:flex; align-items:center; gap:4px }
-.sz input, .q input { width:76px; border:1.5px solid var(--line); border-radius:9px; background:var(--soft); padding:6px 7px; font-weight:700; text-align:right }
-.q input { width:56px }
-.sz input:focus, .q input:focus { outline:none; border-color:var(--acc); background:#fff }
-.sz b { color:var(--sub); font-weight:600 }
-.man { color:var(--acc-ink); font-size:11.5px; font-weight:700; margin-left:4px; white-space:nowrap }
+tr.hl { background:var(--acc-soft) }
+tr.bad td { background:#FDECEA }
+.pos { display:flex; align-items:center; gap:6px; flex-wrap:wrap }
+.pos label { color:var(--sub); font-size:12px; font-weight:700 }
+.cell input, .cell select { border:1.5px solid var(--line); border-radius:9px; background:var(--soft); padding:6px 7px; font-weight:700 }
+.cell input { width:74px; text-align:right }
+.cell select { width:auto; padding:6px 4px }
+.cell input:focus, .cell select:focus { outline:none; border-color:var(--acc); background:#fff }
+.dim { white-space:nowrap } .dim b { color:var(--sub); font-weight:600; margin:0 3px }
 .del { width:34px; height:34px; border-radius:9px; border:1.5px solid var(--line); background:none; font-size:18px; line-height:1; color:var(--sub) }
-.del:hover { border-color:#B42318; color:#B42318 }
+.del:hover { border-color:var(--bad); color:var(--bad) }
 .empty { color:var(--sub); padding:16px 6px }
-.grid > .panel { margin-top:0 }
-@media (max-width:640px) {  /* телефон: каждая деталь карточкой, без прокрутки вбок */
+@media (max-width:640px) {  /* телефон: деталь карточкой */
   table { min-width:0 } thead { display:none }
   tbody tr { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)) auto; gap:8px 10px; padding:12px 0; border-bottom:1px solid var(--line) }
   td { border:0; padding:0 }
-  td:nth-child(1) { grid-column:1 / 4 } td:nth-child(6) { grid-column:4; grid-row:1 }
-  td:nth-child(2) { grid-column:1 / -1 }
-  td:nth-child(3), td:nth-child(4), td:nth-child(5) { text-align:left }
+  td:nth-child(1) { grid-column:1 / 4 } td:nth-child(7) { grid-column:4; grid-row:1 }
+  td:nth-child(2) { grid-column:1 / -1 } td:nth-child(3) { grid-column:1 / -1 }
+  td:nth-child(4), td:nth-child(5), td:nth-child(6) { text-align:left }
   td[data-l]::before { content:attr(data-l); display:block; color:var(--sub); font-size:12px; font-weight:600; margin-bottom:2px }
-  .sz input { width:100%; flex:1 } .q input { width:64px }
   td.empty { grid-column:1 / -1 }
 }
 
 .tot { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:20px; align-items:end }
 @media (max-width:640px) { .tot { grid-template-columns:minmax(0,1fr) } }
-.sumrows { display:grid; gap:6px; font-size:14.5px; max-width:520px }
+.sumrows { display:grid; gap:6px; font-size:14.5px; max-width:560px }
 .sumrows div { display:flex; justify-content:space-between; gap:16px }
 .sumrows dt { color:var(--sub) } .sumrows dd { font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap }
+.sumrows .key dt, .sumrows .key dd { color:var(--ink); font-weight:800 }
 .big { font-size:clamp(30px,4.6vw,46px); font-weight:800; letter-spacing:-.035em; line-height:1.05; font-variant-numeric:tabular-nums; margin-top:12px }
 .acts { display:flex; gap:8px; flex-wrap:wrap }
 .btn { border:0; border-radius:12px; padding:12px 18px; font-weight:800; background:var(--acc); color:var(--on-acc) }
 .btn.alt { background:none; border:1.5px solid var(--line); color:var(--ink) }
 .btn:hover { filter:brightness(.94) }
-.toast { color:#14804A; font-weight:700; font-size:14px; min-height:20px; margin-top:6px }
 .foot { color:var(--sub); font-size:13px; padding:18px 0 32px }
-
 @media print {
   body { background:#fff; font-size:12px }
-  .demo-bar, .no-print, .del, .foot { display:none !important }
+  .demo-bar, .no-print, .del, .foot, .badge { display:none !important }
   .panel { padding:8px 0; border-radius:0 }
-  .grid { grid-template-columns:1fr 1fr }
+  .grid { grid-template-columns:1fr }
+  .scheme { max-width:520px }
   .tbl { overflow:visible } table { min-width:0 }
-  .sz input, .q input { border:0; background:none; width:auto; padding:0; text-align:left }
+  .cell input, .cell select { border:0; background:none; width:auto; padding:0; text-align:left; appearance:none }
 }
 </style>
 </head>
@@ -131,30 +145,42 @@ td .sub { display:block; color:var(--sub); font-size:12px; font-weight:600 }
   </header>
 
   <div class="grid">
-    <section class="panel" aria-labelledby="h-dims">
-      <h2 id="h-dims">Габариты шкафа</h2>
-      <div class="dims">
-        <div class="fld"><label for="L">Длина</label><div class="inp"><input id="L" type="number" inputmode="numeric" min="200" max="6000" step="1" value="1800"><span>мм</span></div></div>
-        <div class="fld"><label for="H">Высота</label><div class="inp"><input id="H" type="number" inputmode="numeric" min="200" max="3200" step="1" value="2400"><span>мм</span></div></div>
-        <div class="fld"><label for="D">Глубина</label><div class="inp"><input id="D" type="number" inputmode="numeric" min="100" max="1200" step="1" value="600"><span>мм</span></div></div>
-      </div>
-      <div class="row2">
-        <div class="fld"><label for="mat">Материал</label><select id="mat"></select></div>
-        <div class="fld"><label for="mk">Наценка</label><div class="inp"><input id="mk" type="number" inputmode="decimal" min="0" max="500" step="1"><span>%</span></div></div>
-      </div>
-      <div class="adds no-print">
-        <button class="add" type="button" data-add="polka">+ Полка</button>
-        <button class="add" type="button" data-add="stoyka">+ Стойка</button>
-        <button class="add" type="button" data-add="yaschik">+ Ящик</button>
-        <button class="add" type="button" data-add="shtanga">+ Штанга</button>
-      </div>
-      <p class="hint no-print">Размеры новых деталей берутся из габаритов: полка = ширина секции × глубина, стойка = высота × глубина. Поправленный вручную размер больше не пересчитывается.</p>
-    </section>
+    <div class="stack">
+      <section class="panel" aria-labelledby="h-dims">
+        <h2 id="h-dims">Габариты шкафа</h2>
+        <div class="three">
+          <div class="fld"><label for="L">Длина</label><div class="inp"><input id="L" type="number" inputmode="numeric" min="300" max="6000" value="1800"><span>мм</span></div></div>
+          <div class="fld"><label for="H">Высота</label><div class="inp"><input id="H" type="number" inputmode="numeric" min="300" max="3200" value="2400"><span>мм</span></div></div>
+          <div class="fld"><label for="D">Глубина</label><div class="inp"><input id="D" type="number" inputmode="numeric" min="100" max="1200" value="600"><span>мм</span></div></div>
+        </div>
+        <div class="two">
+          <div class="fld"><label for="mat">Материал</label><select id="mat"></select></div>
+          <div class="fld"><label for="mk">Наценка</label><div class="inp"><input id="mk" type="number" inputmode="decimal" min="0" max="500"><span>%</span></div></div>
+        </div>
+      </section>
+
+      <section class="panel no-print" aria-labelledby="h-add">
+        <h2 id="h-add">Добавить деталь</h2>
+        <div class="three">
+          <div class="fld"><label for="aSec">Секция</label><select id="aSec"></select></div>
+          <div class="fld"><label for="aY">Высота от пола</label><div class="inp"><input id="aY" type="number" inputmode="numeric" placeholder="авто"><span>мм</span></div></div>
+          <div class="fld"><label for="aDH">Высота ящика</label><div class="inp"><input id="aDH" type="number" inputmode="numeric" min="50"><span>мм</span></div></div>
+        </div>
+        <div class="adds">
+          <button class="add" type="button" data-add="polka">+ Полка</button>
+          <button class="add" type="button" data-add="stoyka">+ Стойка</button>
+          <button class="add" type="button" data-add="yaschik">+ Ящик</button>
+          <button class="add" type="button" data-add="shtanga">+ Штанга</button>
+        </div>
+        <p class="hint">Полка, ящик и штанга встают в выбранную секцию на указанную высоту (пусто = в свободное место). Стойка делит выбранную секцию пополам. Потом всё можно двигать на схеме или числами в таблице. Секцию можно выбрать и нажатием на схему.</p>
+        <p class="toast" id="toast" role="status"></p>
+      </section>
+    </div>
 
     <section class="panel" aria-labelledby="h-sch">
       <h2 id="h-sch">Схема спереди</h2>
-      <div class="scheme"><svg id="svg" viewBox="0 0 600 420" role="img" aria-label="Схема шкафа спереди"></svg></div>
-      <div class="legend"><span><i style="background:#B9A88F"></i>корпус и стойки</span><span><i style="background:var(--acc)"></i>полки</span><span><i style="background:#D9C9AE;border:1px solid #9C8E78"></i>ящики</span><span><i style="background:#6E6A75"></i>штанги</span></div>
+      <div class="scheme" id="scheme"><svg id="svg" viewBox="0 0 700 560" role="img" aria-label="Схема шкафа спереди"></svg></div>
+      <div class="legend"><span><i style="background:#B9A88F"></i>корпус</span><span><i style="background:#8C7A60"></i>стойки (тянуть вбок)</span><span><i style="background:#5B43B5"></i>полки</span><span><i style="background:#D9C9AE;border:1px solid #9C8E78"></i>ящики</span><span><i style="background:#4A4652"></i>штанги</span></div>
     </section>
   </div>
 
@@ -162,7 +188,7 @@ td .sub { display:block; color:var(--sub); font-size:12px; font-weight:600 }
     <h2 id="h-tbl">Детали</h2>
     <div class="tbl">
       <table>
-        <thead><tr><th>Деталь</th><th>Размер, мм</th><th>Кол-во</th><th class="num">м²</th><th class="num">Цена</th><th class="no-print"><span class="sr" style="position:absolute;left:-9999px">Удалить</span></th></tr></thead>
+        <thead><tr><th>Деталь</th><th>Положение</th><th>Размер, мм</th><th>Кол-во</th><th class="num">м²</th><th class="num">Цена</th><th class="no-print"><span class="sr">Удалить</span></th></tr></thead>
         <tbody id="rows"></tbody>
       </table>
     </div>
@@ -177,12 +203,12 @@ td .sub { display:block; color:var(--sub); font-size:12px; font-weight:600 }
       </div>
       <div class="no-print">
         <div class="acts"><button class="btn" type="button" id="copy">Копировать</button><button class="btn alt" type="button" id="print">Печать</button></div>
-        <p class="toast" id="toast" role="status"></p>
+        <p class="toast" id="toast2" role="status"></p>
       </div>
     </div>
   </section>
 
-  <p class="foot">Цена детали = площадь × цена материала за м² + кромка по переднему краю. Ящики и штанги по цене за штуку. Двери не считаются. Цены и материалы меняются в объекте SETTINGS в самом начале файла.</p>
+  <p class="foot">Цена материала = площадь деталей × коэффициент обрезков × цена за м². Кромка по переднему краю каждой детали. Ящики и штанги по цене за штуку. Двери не считаются. Высота от пола считается до низа детали. Все цены и коэффициенты в объекте SETTINGS в самом начале файла.</p>
 </div>
 
 <script>
@@ -191,167 +217,271 @@ td .sub { display:block; color:var(--sub); font-size:12px; font-weight:600 }
   var esc = function (s) { return String(s).replace(/[&<>"]/g, function (x) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[x] }) }
   var rub = function (n) { return Math.round(n).toLocaleString('ru-RU').replace(/[, ]/g, ' ') + ' ₽' }
   var m2f = function (n) { return n.toFixed(2).replace('.', ',') }
-  var num = function (v, d) { v = parseFloat(String(v).replace(',', '.')); return isFinite(v) && v >= 0 ? v : d }
-  var T = function () { return num(S.thickness, 16) }
+  var num = function (v, d) { v = parseFloat(String(v).replace(',', '.')); return isFinite(v) ? v : d }
+  var T = Math.max(1, num(S.thickness, 16)), MIN = Math.max(20, num(S.minSection, 100)), ROD = Math.max(5, num(S.rodSpace, 30))
+  var WASTE = Math.max(1, num(S.wasteFactor, 1)), DH = Math.max(50, num(S.drawerHeight, 150))
+  var NAMES = { side: 'Боковина', topbot: 'Крыша / дно', stoyka: 'Стойка', polka: 'Полка', yaschik: 'Ящик', shtanga: 'Штанга' }
 
-  var NAMES = { side: 'Боковина', topbot: 'Крыша / дно', polka: 'Полка', stoyka: 'Стойка', yaschik: 'Ящик', shtanga: 'Штанга' }
-  var PANEL = { side: 1, topbot: 1, polka: 1, stoyka: 1 }
-  var g = { L: 1800, H: 2400, D: 600 }, mat = 0, id = 0
-  // корпус сразу: две боковины и крыша с дном, их можно удалить или поправить
-  var rows = [{ id: ++id, t: 'side', q: 2, auto: true }, { id: ++id, t: 'topbot', q: 2, auto: true }]
+  // ---------------- состояние, все размеры в мм
+  var g = { L: 1800, H: 2400, D: 600 }, mat = 0, nid = 0, hl = null
+  var corpus = [{ id: ++nid, t: 'side', q: 2 }, { id: ++nid, t: 'topbot', q: 2 }]
+  var posts = []   // стойки: { id, x } x = отступ левой грани стойки от левого края шкафа
+  var items = []   // полки, ящики, штанги: { id, t, sec, y (низ детали от пола), h (у ящика), d (глубина полки, null = как шкаф) }
 
   S.materials.forEach(function (m, i) { $('mat').insertAdjacentHTML('beforeend', '<option value="' + i + '">' + esc(m.name) + '</option>') })
-  $('mk').value = num(S.markup, 0)
+  $('mk').value = num(S.markup, 0); $('aDH').value = DH
 
-  function inner() { return rows.filter(function (r) { return r.t === 'stoyka' }).reduce(function (a, r) { return a + r.q }, 0) }
-  function secW() { var n = inner(); return Math.max(0, Math.round((g.L - 2 * T() - n * T()) / (n + 1))) }
-  function autoSize(r) {   // размер по габаритам: [a, b] в мм
-    var t = T()
+  // ---------------- геометрия
+  function sorted() { return posts.slice().sort(function (a, b) { return a.x - b.x }) }
+  function P() { return [0].concat(sorted().map(function (p) { return p.x }), [g.L - T]) }        // левые грани вертикальных плит
+  function nSec() { return posts.length + 1 }
+  function secW(i) { var p = P(); return p[i + 1] - p[i] - T }
+  function secX(i) { return P()[i] + T }                                                            // левый край пустоты секции
+  function lo() { return T } function hi() { return g.H - T }                                      // пол = верх дна, потолок = низ крыши
+  function itemH(it) { return it.t === 'polka' ? T : it.t === 'yaschik' ? it.h : ROD }
+  function depth(it) { return it.d == null ? g.D : it.d }
+
+  // ближайшее свободное место по высоте в секции: детали не залезают друг на друга и за габариты
+  function fitY(it, want, sec) {
+    var h = itemH(it), others = items.filter(function (o) { return o !== it && o.sec === sec }).map(function (o) { return [o.y, o.y + itemH(o)] }).sort(function (a, b) { return a[0] - b[0] })
+    var gaps = [], a = lo()
+    others.forEach(function (o) { if (o[0] > a) gaps.push([a, Math.min(o[0], hi())]); a = Math.max(a, o[1]) })   // свободное место только внутри габаритов
+    if (hi() > a) gaps.push([a, hi()])
+    var best = null, bd = Infinity
+    gaps.forEach(function (gp) {
+      if (gp[1] - gp[0] < h) return
+      var y = Math.min(Math.max(want, gp[0]), gp[1] - h), d = Math.abs(y - want)
+      if (d < bd) { bd = d; best = y }
+    })
+    return best == null ? null : Math.round(best)
+  }
+  function freeMid(it, sec) {   // середина самого большого свободного места
+    var h = itemH(it), others = items.filter(function (o) { return o !== it && o.sec === sec }).map(function (o) { return [o.y, o.y + itemH(o)] }).sort(function (a, b) { return a[0] - b[0] })
+    var a = lo(), big = null
+    others.concat([[hi(), hi()]]).forEach(function (o) { var e = Math.min(o[0], hi()); if (e - a >= h && (!big || e - a > big[1] - big[0])) big = [a, e]; a = Math.max(a, o[1]) })
+    if (!big) return null
+    return it.t === 'yaschik' ? big[0] : Math.round((big[0] + big[1] - h) / 2)
+  }
+  function postRange(p) {        // стойка не переходит соседей и оставляет секции не уже MIN
+    var s = sorted(), i = s.indexOf(p), left = i ? s[i - 1].x : 0, right = i < s.length - 1 ? s[i + 1].x : g.L - T
+    return [left + T + MIN, right - T - MIN]
+  }
+  function clampPost(p, want) { var r = postRange(p); return Math.round(Math.min(Math.max(want, r[0]), r[1])) }
+  function bad(it) { return it.sec >= nSec() || it.y < lo() || it.y + itemH(it) > hi() || items.some(function (o) { return o !== it && o.sec === it.sec && o.y < it.y + itemH(it) && it.y < o.y + itemH(o) }) }
+  function settle() {          // после смены габаритов: всё возвращаем в рамки
+    sorted().forEach(function (p) { var r = postRange(p); if (r[0] <= r[1]) p.x = clampPost(p, p.x) })
+    items.slice().sort(function (a, b) { return a.y - b.y }).forEach(function (it) { var y = fitY(it, it.y, it.sec); if (y != null) it.y = y })
+  }
+
+  // ---------------- строки таблицы и цены
+  function rowsAll() {
+    var s = sorted()
+    return corpus.concat(s.map(function (p) { return { id: p.id, t: 'stoyka', q: 1, ref: p } }),
+      items.slice().sort(function (a, b) { return a.sec - b.sec || a.y - b.y }).map(function (it) { return { id: it.id, t: it.t, q: 1, ref: it } }))
+  }
+  function size(r) {           // [ширина/высота, глубина] для плит, [ширина, высота] у ящика, [длина] у штанги
     if (r.t === 'side') return [g.H, g.D]
-    if (r.t === 'topbot') return [g.L - 2 * t, g.D]
-    if (r.t === 'polka' || r.t === 'yaschik') return [secW(), g.D]
-    if (r.t === 'stoyka') return [g.H - 2 * t, g.D]
-    if (r.t === 'shtanga') return [secW(), 0]
+    if (r.t === 'topbot') return [g.L - 2 * T, g.D]
+    if (r.t === 'stoyka') return [g.H - 2 * T, g.D]
+    if (r.t === 'polka') return [secW(r.ref.sec), depth(r.ref)]
+    if (r.t === 'yaschik') return [secW(r.ref.sec), r.ref.h]
+    return [secW(r.ref.sec)]
   }
-  function size(r) { if (r.auto) { var s = autoSize(r); r.a = s[0]; r.b = s[1] } return [r.a, r.b] }
-  function line(r) {     // площадь и цена одной строки
-    var s = size(r), p = S.materials[mat] ? num(S.materials[mat].price, 0) : 0
-    if (PANEL[r.t]) {
-      var area = s[0] * s[1] / 1e6 * r.q, edgeM = s[0] / 1000 * r.q
-      return { area: area, cost: area * p + edgeM * num(S.edge, 0), edge: edgeM }
-    }
-    return { area: 0, cost: r.q * num(r.t === 'yaschik' ? S.drawer : S.rod, 0), edge: 0 }
+  var PANEL = { side: 1, topbot: 1, stoyka: 1, polka: 1 }
+  function line(r) {
+    var s = size(r)
+    if (PANEL[r.t]) return { area: s[0] * s[1] / 1e6 * r.q, edge: s[0] / 1000 * r.q, piece: 0 }
+    return { area: 0, edge: 0, piece: r.q * num(r.t === 'yaschik' ? S.drawer : S.rod, 0) }
   }
-
-  function renderRows() {
-    var h = ''
-    rows.forEach(function (r) {
-      var s = size(r), l = line(r), one = r.t === 'shtanga'
-      h += '<tr data-id="' + r.id + '"><td><span class="nm">' + NAMES[r.t] + '</span>' + (r.t === 'yaschik' ? '<span class="sub">ширина × глубина</span>' : one ? '<span class="sub">длина</span>' : '') + '</td>' +
-        '<td><div class="sz"><input aria-label="' + NAMES[r.t] + ': ' + (one ? 'длина' : 'размер 1') + ', мм" data-k="a" inputmode="numeric" value="' + s[0] + '">' +
-        (one ? '' : '<b>×</b><input aria-label="' + NAMES[r.t] + ': размер 2, мм" data-k="b" inputmode="numeric" value="' + s[1] + '">') +
-        (r.auto ? '' : '<span class="man">вручную</span>') + '</div></td>' +
-        '<td class="q" data-l="Кол-во"><input aria-label="' + NAMES[r.t] + ': количество" data-k="q" inputmode="numeric" value="' + r.q + '"></td>' +
-        '<td class="num" data-l="м²" data-c="area">' + (PANEL[r.t] ? m2f(l.area) : '—') + '</td><td class="num" data-l="Цена" data-c="cost">' + rub(l.cost) + '</td>' +
-        '<td class="no-print"><button class="del" type="button" aria-label="Удалить строку: ' + NAMES[r.t] + '">×</button></td></tr>'
-    })
-    $('rows').innerHTML = h || '<tr><td colspan="6" class="empty">Деталей нет. Добавьте кнопками выше.</td></tr>'
-  }
-  function refreshCells() {   // без пересборки таблицы, чтобы не сбивать ввод
-    rows.forEach(function (r) {
-      var tr = $('rows').querySelector('[data-id="' + r.id + '"]'); if (!tr) return
-      var s = size(r), l = line(r)
-      if (r.auto) { var a = tr.querySelector('[data-k=a]'), b = tr.querySelector('[data-k=b]'); if (a !== document.activeElement) a.value = s[0]; if (b && b !== document.activeElement) b.value = s[1] }
-      tr.querySelector('[data-c=area]').textContent = PANEL[r.t] ? m2f(l.area) : '—'
-      tr.querySelector('[data-c=cost]').textContent = rub(l.cost)
-    })
-  }
+  function price() { return S.materials[mat] ? num(S.materials[mat].price, 0) : 0 }
+  function rowCost(l) { return l.area * WASTE * price() + l.edge * num(S.edge, 0) + l.piece }   // обрезки раскладываются на детали, сумма строк = итог до наценки
   function totals() {
-    var area = 0, matC = 0, edgeM = 0, dr = 0, rod = 0, nd = 0, nr = 0, p = S.materials[mat] ? num(S.materials[mat].price, 0) : 0
-    rows.forEach(function (r) {
-      var l = line(r)
-      if (PANEL[r.t]) { area += l.area; edgeM += l.edge } else if (r.t === 'yaschik') { dr += l.cost; nd += r.q } else { rod += l.cost; nr += r.q }
-    })
-    matC = area * p
-    var edgeC = edgeM * num(S.edge, 0), base = matC + edgeC + dr + rod, mk = num($('mk').value, 0), mkC = base * mk / 100
-    return { area: area, matC: matC, edgeM: edgeM, edgeC: edgeC, dr: dr, nd: nd, rod: rod, nr: nr, base: base, mk: mk, mkC: mkC, total: base + mkC }
-  }
-  function renderTotals() {
-    var t = totals(), m = S.materials[mat] ? S.materials[mat].name : ''
-    var list = [['Общая площадь', m2f(t.area) + ' м²'], ['Материал (' + m + ')', rub(t.matC)], ['Кромка, ' + m2f(t.edgeM) + ' м', rub(t.edgeC)],
-      ['Ящики, ' + t.nd + ' шт.', rub(t.dr)], ['Штанги, ' + t.nr + ' шт.', rub(t.rod)], ['Наценка ' + t.mk + ' %', rub(t.mkC)]]
-    $('sum').innerHTML = list.map(function (x) { return '<div><dt>' + esc(x[0]) + '</dt><dd>' + x[1] + '</dd></div>' }).join('')
-    $('total').textContent = 'Итого ' + rub(t.total)
-    var zero = !S.materials.some(function (x) { return num(x.price, 0) > 0 }) && !num(S.edge, 0) && !num(S.drawer, 0) && !num(S.rod, 0)
-    $('badge').classList.toggle('on', zero)
+    var t = { area: 0, edge: 0, nd: 0, nr: 0, dr: 0, rod: 0 }
+    rowsAll().forEach(function (r) { var l = line(r); t.area += l.area; t.edge += l.edge; if (r.t === 'yaschik') { t.nd += r.q; t.dr += l.piece } if (r.t === 'shtanga') { t.nr += r.q; t.rod += l.piece } })
+    t.areaW = t.area * WASTE; t.matC = t.areaW * price(); t.edgeC = t.edge * num(S.edge, 0)
+    t.base = t.matC + t.edgeC + t.dr + t.rod; t.mk = num($('mk').value, 0); t.mkC = t.base * t.mk / 100; t.total = t.base + t.mkC
     return t
   }
 
-  // ---------------- схема спереди
-  function scheme() {
-    var W = 600, Hh = 420, pad = 30, k = Math.min((W - 2 * pad) / g.L, (Hh - 2 * pad) / g.H)
-    var w = g.L * k, h = g.H * k, x0 = (W - w) / 2, y0 = (Hh - h) / 2, t = Math.max(3, T() * k)
-    var cnt = function (type) { return rows.filter(function (r) { return r.t === type }).reduce(function (a, r) { return a + r.q }, 0) }
-    var nS = cnt('stoyka'), nP = cnt('polka'), nD = cnt('yaschik'), nR = cnt('shtanga'), n = nS + 1
-    var hasSide = cnt('side') > 0, hasTB = cnt('topbot') > 0
-    var s = '<rect width="600" height="420" fill="#F5F3F8"/>'
-    s += '<rect x="' + x0 + '" y="' + y0 + '" width="' + w + '" height="' + h + '" fill="#FBF8F3" stroke="#B9A88F" stroke-width="1.5" stroke-dasharray="' + (hasSide && hasTB ? '0' : '5 4') + '"/>'
-    if (hasSide) s += '<rect x="' + x0 + '" y="' + y0 + '" width="' + t + '" height="' + h + '" fill="#B9A88F"/><rect x="' + (x0 + w - t) + '" y="' + y0 + '" width="' + t + '" height="' + h + '" fill="#B9A88F"/>'
-    if (hasTB) s += '<rect x="' + x0 + '" y="' + y0 + '" width="' + w + '" height="' + t + '" fill="#B9A88F"/><rect x="' + x0 + '" y="' + (y0 + h - t) + '" width="' + w + '" height="' + t + '" fill="#B9A88F"/>'
-    var iw = w - 2 * t, sw = (iw - nS * t) / n, top = y0 + t, bot = y0 + h - t
-    var sec = []
-    for (var i = 0; i < n; i++) sec.push({ x: x0 + t + i * (sw + t), p: 0, d: 0, r: 0 })
-    for (i = 0; i < nS; i++) s += '<rect x="' + (sec[i].x + sw) + '" y="' + top + '" width="' + t + '" height="' + (bot - top) + '" fill="#B9A88F"/>'
-    for (i = 0; i < nR; i++) sec[i % n].r++
-    var dh = Math.max(10, Math.min(40, 180 * k))
-    for (i = 0; i < nD; i++) sec[n - 1 - (i % n)].d++
-    for (i = 0; i < nP; i++) sec[(i + (nR ? 1 : 0)) % n].p++
-    sec.forEach(function (c) {
-      var free1 = bot - c.d * dh, free0 = top
-      for (var j = 0; j < c.d; j++) {
-        var dy = bot - (j + 1) * dh
-        s += '<rect x="' + (c.x + 2) + '" y="' + (dy + 1.5) + '" width="' + (sw - 4) + '" height="' + (dh - 3) + '" rx="2" fill="#D9C9AE" stroke="#9C8E78" stroke-width="1"/><rect x="' + (c.x + sw / 2 - 8) + '" y="' + (dy + dh / 2 - 1.5) + '" width="16" height="3" rx="1.5" fill="#9C8E78"/>'
-      }
-      for (j = 0; j < c.r; j++) {
-        var ry = top + 14 + j * 22
-        s += '<rect x="' + c.x + '" y="' + ry + '" width="' + sw + '" height="3.5" rx="1.5" fill="#6E6A75"/>'
-        free0 = ry + 14
-      }
-      if (c.r) free0 = top + (bot - top) * .55
-      var gap = (free1 - free0) / (c.p + 1)
-      for (j = 1; j <= c.p; j++) s += '<rect x="' + c.x + '" y="' + (free0 + j * gap - 2) + '" width="' + sw + '" height="4" fill="var(--acc)"/>'
+  // ---------------- таблица
+  function secOpts(sel) { var h = ''; for (var i = 0; i < nSec(); i++) h += '<option value="' + i + '"' + (i === sel ? ' selected' : '') + '>' + (i + 1) + '</option>'; return h }
+  function renderRows() {
+    var h = ''
+    rowsAll().forEach(function (r) {
+      var s = size(r), l = line(r), it = r.ref, nm = NAMES[r.t], pos = '', dim = ''
+      if (r.t === 'stoyka') pos = '<div class="pos cell"><label for="x' + r.id + '">X</label><input id="x' + r.id + '" data-k="x" inputmode="numeric" value="' + it.x + '"><span class="sub">от левого края</span></div>'
+      else if (it) pos = '<div class="pos cell"><label for="s' + r.id + '">секция</label><select id="s' + r.id + '" data-k="sec">' + secOpts(it.sec) + '</select><label for="y' + r.id + '">h</label><input id="y' + r.id + '" data-k="y" inputmode="numeric" value="' + it.y + '"></div>'
+      else pos = '<span class="sub">корпус</span>'
+      if (r.t === 'polka') dim = '<span class="dim cell">' + s[0] + '<b>×</b><input aria-label="Полка: глубина, мм" data-k="d" inputmode="numeric" value="' + s[1] + '"></span>'
+      else if (r.t === 'yaschik') dim = '<span class="dim cell">' + s[0] + '<b>×</b><input aria-label="Ящик: высота, мм" data-k="h" inputmode="numeric" value="' + s[1] + '"><span class="sub">ширина × высота</span></span>'
+      else if (r.t === 'shtanga') dim = '<span class="dim">' + s[0] + '<span class="sub">длина</span></span>'
+      else dim = '<span class="dim">' + s[0] + '<b>×</b>' + s[1] + '</span>'
+      var q = it ? '1' : '<span class="cell"><input aria-label="' + nm + ': количество" data-k="q" inputmode="numeric" value="' + r.q + '" style="width:56px"></span>'
+      h += '<tr data-id="' + r.id + '" class="' + (it && it.t !== undefined && bad(it) ? 'bad' : '') + (hl === r.id ? ' hl' : '') + '"><td><span class="nm">' + nm + '</span>' + (it && it.sec !== undefined ? '<span class="sub">секция ' + (it.sec + 1) + '</span>' : '') + '</td>' +
+        '<td data-l="Положение">' + pos + '</td><td data-l="Размер, мм">' + dim + '</td><td data-l="Кол-во">' + q + '</td>' +
+        '<td class="num" data-l="м²">' + (PANEL[r.t] ? m2f(l.area) : '—') + '</td><td class="num" data-l="Цена">' + rub(rowCost(l)) + '</td>' +
+        '<td class="no-print"><button class="del" type="button" aria-label="Удалить: ' + nm + '">×</button></td></tr>'
     })
-    s += '<text x="' + (x0 + w / 2) + '" y="' + (y0 + h + 20) + '" text-anchor="middle" font-family="Manrope,sans-serif" font-size="13" font-weight="700" fill="#655F70">' + g.L + ' мм</text>'
-    s += '<text x="' + (x0 - 10) + '" y="' + (y0 + h / 2) + '" text-anchor="middle" font-family="Manrope,sans-serif" font-size="13" font-weight="700" fill="#655F70" transform="rotate(-90 ' + (x0 - 10) + ' ' + (y0 + h / 2) + ')">' + g.H + ' мм</text>'
-    $('svg').innerHTML = s
-    $('svg').setAttribute('aria-label', 'Схема шкафа ' + g.L + ' × ' + g.H + ' мм: стоек ' + nS + ', полок ' + nP + ', ящиков ' + nD + ', штанг ' + nR)
+    $('rows').innerHTML = h || '<tr><td colspan="7" class="empty">Деталей нет.</td></tr>'
+  }
+  function renderTotals() {
+    var t = totals(), m = S.materials[mat] ? S.materials[mat].name : ''
+    var list = [['Площадь деталей', m2f(t.area) + ' м²'], ['С учётом обрезков ×' + String(WASTE).replace('.', ','), m2f(t.areaW) + ' м²', 'key'], ['Материал (' + m + ')', rub(t.matC)],
+      ['Кромка, ' + m2f(t.edge) + ' м', rub(t.edgeC)], ['Ящики, ' + t.nd + ' шт.', rub(t.dr)], ['Штанги, ' + t.nr + ' шт.', rub(t.rod)], ['Наценка ' + t.mk + ' %', rub(t.mkC)]]
+    $('sum').innerHTML = list.map(function (x) { return '<div' + (x[2] ? ' class="key"' : '') + '><dt>' + esc(x[0]) + '</dt><dd>' + x[1] + '</dd></div>' }).join('')
+    $('total').textContent = 'Итого ' + rub(t.total)
+    var zero = !S.materials.some(function (x) { return num(x.price, 0) > 0 }) && !num(S.edge, 0) && !num(S.drawer, 0) && !num(S.rod, 0)
+    $('badge').classList.toggle('on', zero)
+  }
+  function renderSecSelect() {
+    var cur = Math.min(+$('aSec').value || 0, nSec() - 1), h = ''
+    for (var i = 0; i < nSec(); i++) h += '<option value="' + i + '"' + (i === cur ? ' selected' : '') + '>' + (i + 1) + ' (' + secW(i) + ' мм)</option>'
+    $('aSec').innerHTML = h
   }
 
-  function all(full) { if (full) renderRows(); else refreshCells(); renderTotals(); scheme() }
+  // ---------------- схема
+  var V = { W: 700, H: 560, pad: 34 }, K, X0, Y0
+  function geo() { K = Math.min((V.W - 2 * V.pad) / g.L, (V.H - 2 * V.pad - 10) / g.H); X0 = (V.W - g.L * K) / 2; Y0 = (V.H - 10 - g.H * K) / 2 }
+  function sx(mm) { return X0 + mm * K } function sy(mm) { return Y0 + (g.H - mm) * K }      // мм от левого края / от пола → точки схемы
+  function scheme(drag) {
+    geo()
+    var hasSide = corpus.some(function (c) { return c.t === 'side' && c.q > 0 }), hasTB = corpus.some(function (c) { return c.t === 'topbot' && c.q > 0 })
+    var s = '<rect width="700" height="560" fill="#F5F3F8"/>', w = g.L * K, t = Math.max(2, T * K)
+    var sel = +$('aSec').value || 0
+    s += '<rect x="' + X0 + '" y="' + Y0 + '" width="' + w + '" height="' + (g.H * K) + '" fill="#FBF8F3" stroke="#B9A88F" stroke-width="1.5"' + (hasSide && hasTB ? '' : ' stroke-dasharray="5 4"') + '/>'
+    for (var i = 0; i < nSec(); i++) s += '<rect class="sec" data-sec="' + i + '" x="' + sx(secX(i)) + '" y="' + sy(hi()) + '" width="' + Math.max(1, secW(i) * K) + '" height="' + ((hi() - lo()) * K) + '" fill="' + (i === sel ? '#EFE9FB' : 'transparent') + '"/>'
+    if (hasSide) s += '<rect x="' + sx(0) + '" y="' + Y0 + '" width="' + t + '" height="' + (g.H * K) + '" fill="#B9A88F"/><rect x="' + sx(g.L - T) + '" y="' + Y0 + '" width="' + t + '" height="' + (g.H * K) + '" fill="#B9A88F"/>'
+    if (hasTB) s += '<rect x="' + sx(T) + '" y="' + sy(g.H) + '" width="' + ((g.L - 2 * T) * K) + '" height="' + t + '" fill="#B9A88F"/><rect x="' + sx(T) + '" y="' + sy(T) + '" width="' + ((g.L - 2 * T) * K) + '" height="' + t + '" fill="#B9A88F"/>'
+    items.forEach(function (it) {
+      var x = sx(secX(it.sec)), ww = Math.max(1, secW(it.sec) * K), y = sy(it.y + itemH(it)), hh = itemH(it) * K, b = bad(it), on = hl === it.id
+      if (it.t === 'polka') s += '<rect x="' + x + '" y="' + y + '" width="' + ww + '" height="' + Math.max(3, hh) + '" fill="' + (b ? '#B42318' : '#5B43B5') + '"' + (on ? ' stroke="#24212B" stroke-width="1.5"' : '') + '/>'
+      if (it.t === 'yaschik') s += '<rect x="' + (x + 1.5) + '" y="' + (y + 1) + '" width="' + (ww - 3) + '" height="' + Math.max(4, hh - 2) + '" rx="2" fill="' + (b ? '#F6C9C4' : '#D9C9AE') + '" stroke="' + (on ? '#24212B' : '#9C8E78') + '" stroke-width="' + (on ? 1.8 : 1) + '"/><rect x="' + (x + ww / 2 - 9) + '" y="' + (y + hh / 2 - 1.5) + '" width="18" height="3" rx="1.5" fill="#9C8E78"/>'
+      if (it.t === 'shtanga') s += '<rect x="' + x + '" y="' + (y + hh / 2 - 2) + '" width="' + ww + '" height="4" rx="2" fill="' + (b ? '#B42318' : '#4A4652') + '"/><path d="M' + (x + 6) + ' ' + (y + hh / 2) + 'v' + (-hh / 2 + 2) + 'M' + (x + ww - 6) + ' ' + (y + hh / 2) + 'v' + (-hh / 2 + 2) + '" stroke="#4A4652" stroke-width="2"/>'
+      s += '<rect data-drag="v" data-id="' + it.id + '" x="' + x + '" y="' + (y + hh / 2 - Math.max(11, hh / 2)) + '" width="' + ww + '" height="' + Math.max(22, hh) + '" fill="transparent"/>'
+    })
+    sorted().forEach(function (p) {
+      var x = sx(p.x), on = hl === p.id
+      s += '<rect x="' + x + '" y="' + sy(hi()) + '" width="' + t + '" height="' + ((hi() - lo()) * K) + '" fill="' + (on ? '#24212B' : '#8C7A60') + '"/>'
+      s += '<rect data-drag="h" data-id="' + p.id + '" x="' + (x + t / 2 - 12) + '" y="' + sy(hi()) + '" width="24" height="' + ((hi() - lo()) * K) + '" fill="transparent"/>'
+    })
+    // ширины секций под шкафом
+    for (i = 0; i < nSec(); i++) s += '<text x="' + sx(secX(i) + secW(i) / 2) + '" y="' + (sy(0) + 16) + '" text-anchor="middle" font-family="Manrope,sans-serif" font-size="12" font-weight="700" fill="#655F70">' + secW(i) + '</text>'
+    s += '<text x="' + (X0 + w / 2) + '" y="' + (sy(0) + 32) + '" text-anchor="middle" font-family="Manrope,sans-serif" font-size="12.5" font-weight="800" fill="#24212B">' + g.L + ' мм</text>'
+    s += '<text x="' + (X0 - 12) + '" y="' + (Y0 + g.H * K / 2) + '" text-anchor="middle" font-family="Manrope,sans-serif" font-size="12.5" font-weight="800" fill="#24212B" transform="rotate(-90 ' + (X0 - 12) + ' ' + (Y0 + g.H * K / 2) + ')">' + g.H + ' мм</text>'
+    if (drag) s += tip(drag)
+    $('svg').innerHTML = s
+    $('svg').setAttribute('aria-label', 'Схема шкафа ' + g.L + ' × ' + g.H + ' мм, секций ' + nSec())
+  }
+  function tip(d) {             // подпись с размером рядом с тем, что тянем
+    var txt, x, y
+    if (d.post) {
+      var s = sorted(), i = s.indexOf(d.post)
+      txt = 'X ' + d.post.x + ' мм · слева ' + secW(i) + ' · справа ' + secW(i + 1); x = sx(d.post.x); y = sy(hi()) + 24
+    } else {
+      var it = d.item, below = lo()
+      items.forEach(function (o) { if (o !== it && o.sec === it.sec && o.y + itemH(o) <= it.y) below = Math.max(below, o.y + itemH(o)) })
+      txt = 'от пола ' + it.y + ' мм · до детали ниже ' + (it.y - below); x = sx(secX(it.sec) + secW(it.sec) / 2); y = sy(it.y + itemH(it)) - 10
+    }
+    var wpx = txt.length * 6.6 + 16; x = Math.min(Math.max(x - wpx / 2, 4), V.W - wpx - 4); y = Math.min(Math.max(y - 26, 4), V.H - 30)
+    return '<g pointer-events="none"><rect x="' + x + '" y="' + y + '" width="' + wpx + '" height="24" rx="7" fill="#24212B"/><text x="' + (x + wpx / 2) + '" y="' + (y + 16) + '" text-anchor="middle" font-family="Manrope,sans-serif" font-size="12.5" font-weight="700" fill="#fff">' + esc(txt) + '</text></g>'
+  }
 
-  ;['L', 'H', 'D'].forEach(function (k) {
-    $(k).addEventListener('input', function () { var v = num(this.value, 0); if (v >= 100) { g[k] = Math.round(v); all() } })
-    $(k).addEventListener('change', function () { g[k] = Math.round(Math.max(+this.min, Math.min(+this.max, num(this.value, g[k])))); this.value = g[k]; all() })
-  })
-  $('mat').addEventListener('change', function () { mat = +this.value; all() })
-  $('mk').addEventListener('input', function () { renderTotals() })
+  function all() { renderSecSelect(); renderRows(); renderTotals(); scheme() }
+  function say(m, isBad) { var e = $('toast'); e.textContent = m; e.classList.toggle('bad', !!isBad); clearTimeout(say.t); say.t = setTimeout(function () { e.textContent = '' }, 3500) }
+  function byId(id) { return posts.filter(function (p) { return p.id === id })[0] || items.filter(function (o) { return o.id === id })[0] || corpus.filter(function (c) { return c.id === id })[0] }
+
+  // ---------------- добавление
   document.querySelectorAll('[data-add]').forEach(function (b) {
     b.addEventListener('click', function () {
-      var t = b.dataset.add, ex = rows.filter(function (r) { return r.t === t && r.auto })[0]
-      if (ex) ex.q++; else rows.push({ id: ++id, t: t, q: 1, auto: true })   // одинаковые авто-детали копятся в одной строке
-      all(true)
-      var tr = $('rows').querySelector('[data-id="' + (ex ? ex.id : id) + '"]'); if (tr) { tr.style.background = 'var(--acc-soft)'; setTimeout(function () { tr.style.background = '' }, 700) }
+      var t = b.dataset.add, sec = Math.min(+$('aSec').value || 0, nSec() - 1)
+      if (t === 'stoyka') {
+        if (secW(sec) < 2 * MIN + T) return say('Секция ' + (sec + 1) + ' слишком узкая для ещё одной стойки', true)
+        var p = { id: ++nid, x: Math.round(secX(sec) + (secW(sec) - T) / 2) }
+        items.forEach(function (it) { if (it.sec > sec) it.sec++ })   // детали правее сдвигаются на одну секцию, в делимой остаются слева
+        posts.push(p); hl = p.id; all(); return say('Стойка встала в секцию ' + (sec + 1) + ', X ' + p.x + ' мм')
+      }
+      var it = { id: ++nid, t: t, sec: sec, y: 0, h: t === 'yaschik' ? Math.max(50, Math.round(num($('aDH').value, DH))) : 0, d: null }
+      var want = num($('aY').value, null), y = want == null ? freeMid(it, sec) : fitY(it, Math.round(want), sec)
+      if (y == null) return say('В секции ' + (sec + 1) + ' нет места для: ' + NAMES[t].toLowerCase(), true)
+      it.y = y; items.push(it); hl = it.id; all()
+      say(NAMES[t] + ': секция ' + (sec + 1) + ', от пола ' + y + ' мм' + (want != null && y !== Math.round(want) ? ' (на ' + Math.round(want) + ' занято или выходит за габарит, ближайшее свободное место)' : ''))
     })
   })
-  $('rows').addEventListener('input', function (e) {
+  $('aSec').addEventListener('change', function () { scheme() })
+
+  // ---------------- правки в таблице (по Enter или уходу из поля)
+  $('rows').addEventListener('change', function (e) {
     var el = e.target, tr = el.closest('tr'); if (!tr || !el.dataset.k) return
-    var r = rows.filter(function (x) { return x.id === +tr.dataset.id })[0], v = num(el.value, null); if (v === null) return
-    if (el.dataset.k === 'q') { r.q = Math.round(v) } else {
-      if (r.auto) { var s = autoSize(r); r.a = s[0]; r.b = s[1]; r.auto = false; if (!tr.querySelector('.man')) tr.querySelector('.sz').insertAdjacentHTML('beforeend', '<span class="man">вручную</span>') }
-      r[el.dataset.k] = Math.round(v)
-    }
-    all()
+    var o = byId(+tr.dataset.id), k = el.dataset.k, v = num(el.value, null)
+    if (k === 'q') { if (v != null) o.q = Math.max(0, Math.round(v)) }
+    else if (k === 'x') { if (v != null) { var nx = clampPost(o, Math.round(v)); if (nx !== Math.round(v)) say('Стойка: X ограничен соседями и шириной секции от ' + MIN + ' мм, стало ' + nx, true); o.x = nx } }
+    else if (k === 'sec') { var ny = fitY(o, o.y, +v); if (ny == null) say('В секции ' + (+v + 1) + ' нет места', true); else { o.sec = +v; o.y = ny } }
+    else if (k === 'y') { if (v != null) { var y = fitY(o, Math.round(v), o.sec); if (y == null) say('Нет места', true); else { if (y !== Math.round(v)) say('Высота ' + Math.round(v) + ' занята или за габаритом, стало ' + y, true); o.y = y } } }
+    else if (k === 'h') { if (v != null) { var old = o.h; o.h = Math.max(50, Math.round(v)); var y2 = fitY(o, o.y, o.sec); if (y2 == null) { o.h = old; say('Такой ящик не помещается', true) } else o.y = y2 } }
+    else if (k === 'd') { if (v != null) o.d = Math.min(g.D, Math.max(50, Math.round(v))) }
+    hl = o.id; all()
   })
   $('rows').addEventListener('click', function (e) {
     var b = e.target.closest('.del'); if (!b) return
-    var rid = +b.closest('tr').dataset.id; rows = rows.filter(function (x) { return x.id !== rid }); all(true)
+    var id = +b.closest('tr').dataset.id, p = posts.filter(function (x) { return x.id === id })[0]
+    if (p) {   // убрали стойку: две секции сливаются в одну
+      var j = sorted().indexOf(p)
+      posts = posts.filter(function (x) { return x !== p })
+      items.forEach(function (it) { if (it.sec > j) it.sec-- })
+      items.forEach(function (it) { if (it.sec === j) { var y = fitY(it, it.y, j); if (y != null) it.y = y } })
+    } else { items = items.filter(function (x) { return x.id !== id }); corpus = corpus.filter(function (x) { return x.id !== id }) }
+    all()
   })
 
+  // ---------------- габариты, материал, наценка
+  ;['L', 'H', 'D'].forEach(function (k) {
+    $(k).addEventListener('change', function () { g[k] = Math.round(Math.max(+this.min, Math.min(+this.max, num(this.value, g[k])))); this.value = g[k]; settle(); all() })
+  })
+  $('mat').addEventListener('change', function () { mat = +this.value; all() })
+  $('mk').addEventListener('input', renderTotals)
+
+  // ---------------- перетаскивание мышкой и пальцем
+  var drag = null
+  function mm(e) { var pt = $('svg').createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; var q = pt.matrixTransform($('svg').getScreenCTM().inverse()); return { x: (q.x - X0) / K, y: g.H - (q.y - Y0) / K } }
+  $('svg').addEventListener('pointerdown', function (e) {
+    var el = e.target.closest('[data-drag]')
+    if (!el) { var s = e.target.closest('.sec'); if (s) { $('aSec').value = s.dataset.sec; scheme() } return }
+    var o = byId(+el.dataset.id), m = mm(e)
+    drag = el.dataset.drag === 'h' ? { post: o, off: m.x - o.x } : { item: o, off: m.y - o.y }
+    hl = o.id; try { $('svg').setPointerCapture(e.pointerId) } catch (x) {} e.preventDefault(); scheme(drag)
+  })
+  $('svg').addEventListener('pointermove', function (e) {
+    if (!drag) return
+    var m = mm(e)
+    if (drag.post) drag.post.x = clampPost(drag.post, Math.round(m.x - drag.off))
+    else { var y = fitY(drag.item, Math.round(m.y - drag.off), drag.item.sec); if (y != null) drag.item.y = y }
+    renderTotals(); scheme(drag)
+  })
+  function end() { if (!drag) return; drag = null; all() }
+  $('svg').addEventListener('pointerup', end); $('svg').addEventListener('pointercancel', end)
+
+  // ---------------- копировать и печать
   function text() {
-    var t = totals(), out = ['Шкаф ' + g.L + ' × ' + g.H + ' × ' + g.D + ' мм, ' + (S.materials[mat] ? S.materials[mat].name : ''), '', 'Деталь\tРазмер, мм\tКол-во\tм²\tЦена']
-    rows.forEach(function (r) { var s = size(r), l = line(r); out.push(NAMES[r.t] + '\t' + (r.t === 'shtanga' ? s[0] : s[0] + ' × ' + s[1]) + '\t' + r.q + '\t' + (PANEL[r.t] ? m2f(l.area) : '—') + '\t' + rub(l.cost)) })
-    out.push('', 'Общая площадь\t' + m2f(t.area) + ' м²', 'Кромка\t' + m2f(t.edgeM) + ' м\t' + rub(t.edgeC), 'Наценка\t' + t.mk + ' %\t' + rub(t.mkC), 'Итого\t' + rub(t.total))
+    var t = totals(), out = ['Шкаф ' + g.L + ' × ' + g.H + ' × ' + g.D + ' мм, ' + (S.materials[mat] ? S.materials[mat].name : '') + ', секций ' + nSec(), '', 'Деталь\tПоложение\tРазмер, мм\tКол-во\tм²\tЦена']
+    rowsAll().forEach(function (r) {
+      var s = size(r), l = line(r), it = r.ref
+      var pos = r.t === 'stoyka' ? 'X ' + it.x : it ? 'секция ' + (it.sec + 1) + ', от пола ' + it.y : 'корпус'
+      out.push(NAMES[r.t] + '\t' + pos + '\t' + s.join(' × ') + '\t' + r.q + '\t' + (PANEL[r.t] ? m2f(l.area) : '—') + '\t' + rub(rowCost(l)))
+    })
+    out.push('', 'Площадь деталей\t' + m2f(t.area) + ' м²', 'С учётом обрезков ×' + String(WASTE).replace('.', ',') + '\t' + m2f(t.areaW) + ' м²', 'Материал\t' + rub(t.matC),
+      'Кромка ' + m2f(t.edge) + ' м\t' + rub(t.edgeC), 'Ящики ' + t.nd + ' шт.\t' + rub(t.dr), 'Штанги ' + t.nr + ' шт.\t' + rub(t.rod), 'Наценка ' + t.mk + ' %\t' + rub(t.mkC), 'Итого\t' + rub(t.total))
     return out.join('\n')
   }
-  function toast(m) { $('toast').textContent = m; setTimeout(function () { $('toast').textContent = '' }, 2500) }
+  function toast2(m) { $('toast2').textContent = m; setTimeout(function () { $('toast2').textContent = '' }, 2500) }
   $('copy').addEventListener('click', function () {
     var s = text()
-    var fb = function () { var ta = document.createElement('textarea'); ta.value = s; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); toast('Скопировано') } catch (e) { toast('Не удалось скопировать') } ta.remove() }
-    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(s).then(function () { toast('Скопировано, можно вставить в Excel или мессенджер') }, fb); else fb()
+    var fb = function () { var ta = document.createElement('textarea'); ta.value = s; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); toast2('Скопировано') } catch (e) { toast2('Не удалось скопировать') } ta.remove() }
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(s).then(function () { toast2('Скопировано, можно вставить в Excel или мессенджер') }, fb); else fb()
   })
   $('print').addEventListener('click', function () { window.print() })
 
-  all(true)
+  window.__shkaf = { g: g, posts: function () { return sorted() }, items: function () { return items }, totals: totals, secW: secW, text: text }   // для проверки
+  all()
 })()
 </script>
 </body>
