@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Domamebel: сколько стоит ваша кухня (калькулятор)</title>
+<title>Domamebel: сколько стоит ваш шкаф (калькулятор)</title>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#EDEBF0">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2324212B'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-family='Arial' font-weight='700' font-size='32' fill='%23fff'%3ED%3C/text%3E%3C/svg%3E">
@@ -33,6 +33,7 @@ a { color:inherit }
 .intro h1 { font-size:clamp(30px,4.4vw,56px); line-height:1.04; letter-spacing:-.035em; font-weight:800; max-width:18ch; text-wrap:balance }
 .intro p { color:var(--sub); margin-top:12px; max-width:54ch }
 .tabs { display:inline-flex; gap:4px; padding:4px; margin-bottom:22px; background:var(--panel); border-radius:16px; border:1.5px solid var(--line) }
+.tabs[hidden] { display:none }
 .tabs a { display:block; min-width:104px; padding:10px 18px; border-radius:12px; text-align:center; font-weight:700; text-decoration:none; color:var(--sub) }
 .tabs a:hover { color:var(--ink); background:var(--soft) }
 .tabs a[aria-current] { background:var(--acc); color:var(--on-acc) }
@@ -151,7 +152,7 @@ form h2 { font-size:20px; letter-spacing:-.02em }
 <div class="demo-bar">Пример калькулятора для «Domamebel», сделан в Nish Studio. Заявки пока никуда не уходят. <a href="/nish/">Nish Studio</a></div>
 
 <header class="top">
-  <a class="logo" href="#"><i>D</i><span><b>Domamebel</b><small>Кухни на заказ, Курск</small></span></a>
+  <a class="logo" href="#"><i>D</i><span><b>Domamebel</b><small>Шкафы на заказ, Курск</small></span></a>
   <a class="tel" href="tel:+79508752346">+7-950-875-23-46</a>
 </header>
 
@@ -291,8 +292,9 @@ var PIC = {
 }
 PIC.wardrobe = function (st) {
   var v = C.variants[st.v] || { name: '' }, coupe = /купе/i.test(v.name)
-  var mir = 0
+  var mir = 0, alt = false
   C.addons.forEach(function (a, i) { if (/зеркал/i.test(a.name)) mir = st.cnt[i] })
+  if (st.mirror !== undefined) { alt = true; mir = st.mirror ? 99 : 0 }
   var W = st.q.w, H = st.q.h, D = st.q.d
   var k = Math.min(520 / W, 270 / H), pw = W * k, ph = H * k, pd = Math.max(12, Math.min(60, D * k * .45))
   var x0 = 400 - pw / 2, y1 = 340, y0 = y1 - ph
@@ -305,7 +307,7 @@ PIC.wardrobe = function (st) {
   s += '<rect x="' + x0 + '" y="' + y0 + '" width="' + pw + '" height="' + ph + '" fill="' + body + '"/>'
   var dw = (pw - 8) / n
   for (var i = 0; i < n; i++) {
-    var x = x0 + 4 + i * dw, fill = i < mir ? 'url(#mr)' : door
+    var x = x0 + 4 + i * dw, isM = alt ? (mir && (n < 3 ? i === 0 : i % 2 === 1)) : i < mir, fill = isM ? 'url(#mr)' : door
     if (coupe) {
       var ov = i ? 6 : 0
       s += '<rect x="' + (x - ov) + '" y="' + (y0 + 8) + '" width="' + (dw + ov) + '" height="' + (ph - 16) + '" rx="2" fill="' + fill + '" stroke="' + edge + '" stroke-width="2"/>'
@@ -317,14 +319,14 @@ PIC.wardrobe = function (st) {
     }
   }
   if (coupe) s += '<rect x="' + x0 + '" y="' + (y0 + 2) + '" width="' + pw + '" height="6" fill="' + edge + '"/><rect x="' + x0 + '" y="' + (y1 - 8) + '" width="' + pw + '" height="6" fill="' + edge + '"/>'
-  var tag = (v.name ? v.name + ', ' : '') + W + ' × ' + H + ' × ' + D + ' см' + (mir ? ', зеркал: ' + Math.min(mir, n) : '')
+  var tag = (v.name ? v.name + ', ' : '') + W + ' × ' + H + ' × ' + D + ' см' + (alt ? (mir ? ', с зеркалом' : '') : mir ? ', зеркал: ' + Math.min(mir, n) : '')
   return { svg: s, tag: tag }
 }
 function esc2(s) { return String(s).replace(/[&<>]/g, function (x) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[x] }) }
 
 </script>
 <script>
-var C = {"pic": "kitchen", "name": "Domamebel", "phone": "+7-950-875-23-46", "address": "улица 50 лет Октября, 98", "text": {"h1": "Сколько стоит ваша кухня, узнаете за минуту", "lead": "Укажите длину и выберите модель. Цена считается по нашему прайсу, а расчёт можно отправить нам и записаться на замер.", "qtyTitle": "Длина гарнитура", "qtyHint": "по всем стенам, в метрах", "variantTitle": "Модель", "variantHint": "цена за погонный метр", "addonTitle": "Дополнительно", "sumLabel": "Ваша кухня", "cond": "Это ориентир по прайсу. Точную цену назовём после замера и проекта.", "condAsk": "Цену назовём после замера: напишите, и мы перезвоним.", "formTitle": "Записаться на замер", "button": "Отправить расчёт", "photosTitle": "Наши кухни"}, "qty": [{"k": "len", "label": "Длина кухни", "unit": "м", "min": 1, "max": 15, "rmax": 8, "step": 0.1, "deff": 3, "def": 3}], "variants": [{"name": "Кухня на заказ", "price": 18000, "unit": "mp", "per": "за пог. м", "from": false}], "addons": [], "priceList": [{"name": "Кухня на заказ, за погонный метр", "price": 18000}, {"name": "Кухня для квартиры КПД", "price": 81000}, {"name": "Встроенный шкаф-купе", "price": 44000}], "photos": ["p1.jpg", "p2.jpg", "p3.jpg", "p4.jpg", "p5.jpg"], "minimum": 0, "priceNote": "Цены из карточки компании в Яндекс Картах (обновлены 2021-07-06).", "tabs": [{"label": "Кухни", "href": "./", "on": true}, {"label": "Шкафы", "href": "shkafy/", "on": false}], "shapes": {"title": "Форма", "items": [{"name": "Прямая"}, {"name": "Угловая", "sub": "Г-образная"}, {"name": "П-образная"}]}, "swatches": {"title": "Цвет фасадов", "items": [["Светлый беж", "#D8CBB5"], ["Белый", "#F4F2EE"], ["Графит", "#4A4D52"], ["Олива", "#7C8466"], ["Дуб", "#B08A62"]]}};
+var C = {"pic": "wardrobe", "name": "Domamebel", "phone": "+7-950-875-23-46", "address": "улица 50 лет Октября, 98", "text": {"h1": "Сколько будет стоить ваш шкаф", "lead": "Укажите размеры, двери, зеркало и наполнение. Отправьте заявку, и мы посчитаем по нашим расценкам и предложим время замера.", "qtyTitle": "Размеры шкафа", "qtyHint": "в сантиметрах", "variantTitle": "Двери", "variantHint": "", "addonTitle": "Наполнение", "sumLabel": "Ваш шкаф", "cond": "Это ориентир по прайсу. Точную цену назовём после замера и проекта.", "condAsk": "Посчитаем по нашим расценкам и перезвоним, чтобы договориться о замере.", "formTitle": "Записаться на замер", "button": "Оставить заявку", "photosTitle": "Наши шкафы", "askTotal": "Расчёт по вашим расценкам", "askRow": "по расценкам", "askAddon": "по расценкам", "askOwner": "Посчитать по расценкам"}, "qty": [{"k": "w", "label": "Ширина", "unit": "см", "min": 40, "max": 600, "rmax": 400, "step": 5, "deff": 180, "def": 180}, {"k": "h", "label": "Высота", "unit": "см", "min": 60, "max": 320, "rmax": 300, "step": 5, "deff": 240, "def": 240}, {"k": "d", "label": "Глубина", "unit": "см", "min": 30, "max": 90, "rmax": 80, "step": 5, "deff": 60, "def": 60}], "variants": [{"name": "Распашные", "sub": "открываются наружу", "per": "", "from": false}, {"name": "Купе", "sub": "раздвижные", "per": "", "from": false}], "addons": [{"name": "Полки", "price": null, "per": "", "def": 4}, {"name": "Штанги для одежды", "price": null, "per": "", "def": 1}, {"name": "Выдвижные ящики", "price": null, "per": "", "def": 2}], "priceList": [{"name": "Встроенный шкаф-купе", "price": 44000}], "photos": ["p1.jpg", "p2.jpg"], "minimum": 0, "priceNote": "Цены из карточки компании в Яндекс Картах (обновлены 2021-07-06).", "choices": [{"k": "mirror", "title": "Зеркало", "items": ["Без зеркала", "С зеркалом"], "def": 0}]};
 (function () {
   var $ = function (id) { return document.getElementById(id) }
   var esc = function (s) { return String(s).replace(/[&<>"]/g, function (x) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[x] }) }
@@ -358,6 +360,12 @@ var C = {"pic": "kitchen", "name": "Domamebel", "phone": "+7-950-875-23-46", "ad
     C.variants.forEach(function (v, i) { h += '<label><input type="radio" name="var" value="' + i + '"' + (i ? '' : ' checked') + '><span>' + esc(v.name) + (v.price ? '<small>' + (v.from ? 'от ' : '') + rub(v.price) + ' ' + esc(v.per) + '</small>' : (v.sub ? '<small>' + esc(v.sub) + '</small>' : '')) + '</span></label>' })
     h += '</div></fieldset>'
   }
+  (C.choices || []).forEach(function (ch) {  // выбор из вариантов без цены, например «Зеркало: нет / да»
+    st[ch.k] = ch.def || 0
+    h += '<fieldset><legend>' + esc(ch.title) + '</legend><div class="seg" role="radiogroup">'
+    ch.items.forEach(function (s, i) { h += '<label><input type="radio" name="ch-' + ch.k + '" value="' + i + '"' + (i === st[ch.k] ? ' checked' : '') + '><span>' + esc(s) + '</span></label>' })
+    h += '</div></fieldset>'
+  })
   if (C.swatches) {
     h += '<fieldset><legend>' + esc(C.swatches.title) + ' <span class="hint">для картинки, на цену не влияет</span></legend><div class="sw" role="radiogroup">'
     C.swatches.items.forEach(function (s, i) { h += '<label title="' + esc(s[0]) + '"><input type="radio" name="sw" value="' + i + '"' + (i ? '' : ' checked') + ' aria-label="' + esc(s[0]) + '"><span style="background:' + s[1] + '"></span></label>' })
@@ -367,7 +375,7 @@ var C = {"pic": "kitchen", "name": "Domamebel", "phone": "+7-950-875-23-46", "ad
     h += '<fieldset><legend>' + esc(T.addonTitle) + '</legend>'
     C.addons.forEach(function (a, i) {
       st.cnt[i] = a.def || 0
-      h += '<div class="cnt"><div><b>' + esc(a.name) + '</b><small>' + (a.price ? (a.from ? 'от ' : '') + rub(a.price) + ' ' + esc(a.per || 'за шт.') : 'цену уточняйте') + '</small></div><div class="step" data-a="' + i + '"><button type="button" aria-label="Меньше">−</button><output>' + st.cnt[i] + '</output><button type="button" aria-label="Больше">+</button></div></div>'
+      h += '<div class="cnt"><div><b>' + esc(a.name) + '</b><small>' + (a.price ? (a.from ? 'от ' : '') + rub(a.price) + ' ' + esc(a.per || 'за шт.') : esc(T.askAddon || 'цену уточняйте')) + '</small></div><div class="step" data-a="' + i + '"><button type="button" aria-label="Меньше">−</button><output>' + st.cnt[i] + '</output><button type="button" aria-label="Больше">+</button></div></div>'
     })
     h += '</fieldset>'
   }
@@ -382,6 +390,7 @@ var C = {"pic": "kitchen", "name": "Domamebel", "phone": "+7-950-875-23-46", "ad
       var a = amount(), s = a * v.price
       r.push([v.name + ', ' + AMT[C.pic](st, letters()), s]); t += s
     } else { known = false; r.push([(v ? v.name + ', ' : '') + AMT[C.pic](st, letters()), null]) }
+    ;(C.choices || []).forEach(function (ch) { if (ch.row !== false) r.push([ch.title + ': ' + ch.items[st[ch.k]].toLowerCase(), null]) })
     C.addons.forEach(function (ad, i) {
       if (!st.cnt[i]) return
       if (ad.price) { r.push([ad.name + ', ' + st.cnt[i] + ' шт.', st.cnt[i] * ad.price]); t += st.cnt[i] * ad.price }
@@ -393,9 +402,9 @@ var C = {"pic": "kitchen", "name": "Domamebel", "phone": "+7-950-875-23-46", "ad
   }
   function draw() {
     var c = calc(), big = $('total')
-    var txt = c.known ? (c.from ? 'от ' : '') + rub(c.total) : 'Цену уточняйте'
+    var txt = c.known ? (c.from ? 'от ' : '') + rub(c.total) : (T.askTotal || 'Цену уточняйте')
     big.textContent = txt; big.classList.toggle('ask', !c.known); $('total2').textContent = txt
-    $('rows').innerHTML = c.rows.map(function (x) { return '<div><dt>' + esc(x[0]) + '</dt><dd>' + (x[1] == null ? 'уточняйте' : rub(x[1])) + '</dd></div>' }).join('')
+    $('rows').innerHTML = c.rows.map(function (x) { return '<div><dt>' + esc(x[0]) + '</dt><dd>' + (x[1] == null ? esc(T.askRow || 'уточняйте') : rub(x[1])) + '</dd></div>' }).join('')
     $('cond').textContent = c.known ? T.cond : T.condAsk
     document.querySelectorAll('.step').forEach(function (s) { s.querySelector('output').textContent = st.cnt[s.dataset.a] })
     var p = PIC[C.pic](st, c); $('svg').innerHTML = p.svg; $('tag').textContent = p.tag
@@ -416,6 +425,7 @@ var C = {"pic": "kitchen", "name": "Domamebel", "phone": "+7-950-875-23-46", "ad
   document.querySelectorAll('input[name=var]').forEach(function (i) { i.addEventListener('change', function () { st.v = +i.value; draw() }) })
   document.querySelectorAll('input[name=shape]').forEach(function (i) { i.addEventListener('change', function () { st.shape = +i.value; draw() }) })
   document.querySelectorAll('input[name=sw]').forEach(function (i) { i.addEventListener('change', function () { st.sw = +i.value; draw() }) })
+  ;(C.choices || []).forEach(function (ch) { document.querySelectorAll('input[name=ch-' + ch.k + ']').forEach(function (i) { i.addEventListener('change', function () { st[ch.k] = +i.value; draw() }) }) })
   if ($('sText')) $('sText').addEventListener('input', function () { st.text = this.value; draw() })
   document.querySelectorAll('.step').forEach(function (s) {
     var k = s.dataset.a, b = s.querySelectorAll('button')
@@ -444,7 +454,7 @@ var C = {"pic": "kitchen", "name": "Domamebel", "phone": "+7-950-875-23-46", "ad
     var ph = '+' + d[0] + ' ' + d.slice(1, 4) + ' ' + d.slice(4, 7) + '-' + d.slice(7, 9) + '-' + d.slice(9, 11)
     var c = calc(), mm = document.querySelector('input[name=m]:checked').value
     $('owner').innerHTML = '<b>Новая заявка с калькулятора</b>\n' + esc(name) + ', ' + ph + '\nОтветить: ' + mm + '\n\n' +
-      c.rows.map(function (x) { return esc(x[0]) }).join('\n') + '\n<b>' + (c.known ? 'Итого: ' + (c.from ? 'от ' : '') + rub(c.total) : 'Цену уточнить') + '</b>'
+      c.rows.map(function (x) { return esc(x[0]) }).join('\n') + '\n<b>' + (c.known ? 'Итого: ' + (c.from ? 'от ' : '') + rub(c.total) : (T.askOwner || 'Цену уточнить')) + '</b>'
     $('form').hidden = true
     $('done').classList.add('show')
     var h2 = $('done').querySelector('h2'); h2.setAttribute('tabindex', '-1'); h2.focus()
