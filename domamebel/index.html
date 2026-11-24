@@ -12,7 +12,8 @@ var SETTINGS = {
   wasteFactorHdf: 1.15,  // обрезки ХДФ: площадь × коэффициент
   rodSlide: 450,         // штанга выдвижная, ₽ за шт.
   rodRound: 500,         // штанга круглая, ₽ за погонный метр (длина = ширина секции)
-  drawerSlides: 600,     // направляющие, ₽ за один ящик
+  drawerSlidesBasic: 700, // без доводчика, ₽ за комплект на ящик
+  drawerSlidesSoft: 2600, // с доводчиком, ₽ за комплект на ящик
   edge: 0,               // кромка, ₽ за погонный метр (по переднему краю плит)
   markup: 0,             // наценка, %
   thickness: 16,         // толщина ЛДСП, мм
@@ -62,7 +63,7 @@ h2 { font-size:17px; font-weight:800; letter-spacing:-.01em; margin-bottom:12px 
 .inp { display:flex; align-items:center; border:1.5px solid var(--line); border-radius:12px; background:var(--soft); padding:0 10px }
 .inp:focus-within { border-color:var(--acc); background:#fff }
 .inp input { width:100%; min-width:0; border:0; background:none; padding:10px 0; font-weight:800; font-size:17px; font-variant-numeric:tabular-nums }
-.inp input::placeholder { color:#9A94A5; font-weight:600 }
+.inp input::placeholder { color:var(--sub); font-weight:600 }
 .inp input:focus { outline:none }
 .inp span { color:var(--sub); font-size:13px; margin-left:4px; white-space:nowrap }
 select { width:100%; border:1.5px solid var(--line); border-radius:12px; background:var(--soft); padding:10px; font-weight:700 }
@@ -126,6 +127,11 @@ tr.bad td { background:#FDECEA }
 .foot { color:var(--sub); font-size:13px; padding:18px 0 32px }
 .gear { display:inline-flex; align-items:center; gap:8px; border:1.5px solid var(--line); background:var(--panel); border-radius:12px; padding:9px 14px; font-weight:800 }
 .gear:hover, .gear[aria-expanded="true"] { border-color:var(--acc); color:var(--acc-ink) }
+.top-actions { display:flex; flex-wrap:wrap; gap:8px; align-items:stretch }
+.restore { margin-top:10px }
+.restore:disabled { opacity:.65; cursor:default }
+#body-status:empty { min-height:0; margin-top:0 }
+.drawer-slides { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:6px }
 .gear svg { width:18px; height:18px }
 .prices { margin-bottom:16px }
 .prices[hidden] { display:none }
@@ -154,7 +160,10 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
 <div class="wrap">
   <header class="top">
     <div class="logo"><i>D</i><span><b>Domamebel</b><small>Расчёт шкафа по деталям</small></span></div>
+    <div class="top-actions no-print">
+    <button class="btn" type="button" id="new-calc">Новый расчёт</button>
     <button class="gear no-print" type="button" id="gear" aria-expanded="false" aria-controls="prices"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Цены</button>
+    </div>
   </header>
 
   <section class="panel prices" id="prices" hidden aria-labelledby="h-pr">
@@ -177,6 +186,8 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
           <div class="fld"><span style="display:block;font-weight:700;font-size:13px;color:var(--sub);margin-bottom:5px">Наценка</span><div class="mat" id="mkv"></div></div>
         </div>
         <label class="chk"><input type="checkbox" id="back" checked>Есть задняя стенка (ХДФ, длина × высота шкафа)</label>
+        <button class="btn alt restore no-print" type="button" id="restore-body">Вернуть корпус</button>
+        <p class="toast no-print" id="body-status" role="status"></p>
       </section>
 
       <section class="panel no-print" aria-labelledby="h-add">
@@ -229,7 +240,7 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     </div>
   </section>
 
-  <p class="foot">ЛДСП и ХДФ = площадь × коэффициент обрезков × цена за м². Ящик = короб из ЛДСП (2 боковины, перед, зад, дно) + направляющие, фасад не считается. Штанга круглая за погонный метр (длина = ширина секции), выдвижная за штуку. Кромка по переднему краю плит. Двери не считаются. Высота от пола до низа детали. Исходные цены в объекте SETTINGS в начале файла, свои можно поменять кнопкой «Цены».</p>
+  <p class="foot">ЛДСП и ХДФ = площадь × коэффициент обрезков × цена за м². Ящик = короб из ЛДСП (2 боковины, перед, зад, дно) + направляющие, фасад не считается. По умолчанию считаем один комплект направляющих на ящик. Вид и количество можно изменить в строке ящика. Штанга круглая за погонный метр (длина = ширина секции), выдвижная за штуку. Кромка по переднему краю плит. Двери не считаются. Высота от пола до низа детали. Исходные цены в объекте SETTINGS в начале файла, свои можно поменять кнопкой «Цены».</p>
 </div>
 
 <script>
@@ -244,17 +255,33 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
   var NAMES = { side: 'Боковина', topbot: 'Крыша / дно', stoyka: 'Стойка', polka: 'Полка', yaschik: 'Ящик', shtanga: 'Штанга', back: 'Задняя стенка' }
   // ---------------- цены: исходные из SETTINGS, свои сохраняются в браузере
   var PF = [['ldsp', 'ЛДСП', '₽/м²'], ['hdf', 'ХДФ задняя стенка', '₽/м²'], ['wasteFactor', 'Обрезки ЛДСП, коэффициент', '×'], ['wasteFactorHdf', 'Обрезки ХДФ, коэффициент', '×'],
-    ['rodRound', 'Штанга круглая', '₽/пог. м'], ['rodSlide', 'Штанга выдвижная', '₽/шт.'], ['drawerSlides', 'Направляющие ящика', '₽/ящик'], ['edge', 'Кромка', '₽/пог. м'], ['markup', 'Наценка', '%']]
+    ['rodRound', 'Штанга круглая', '₽/пог. м'], ['rodSlide', 'Штанга выдвижная', '₽/шт.'], ['drawerSlidesBasic', 'Направляющие без доводчика', '₽/компл.'], ['drawerSlidesSoft', 'Направляющие с доводчиком', '₽/компл.'], ['edge', 'Кромка', '₽/пог. м'], ['markup', 'Наценка', '%']]
   var KEY = 'domamebel-prices-v1', PR = {}
   function defaults() { PF.forEach(function (f) { PR[f[0]] = num(S[f[0]], 0) }) }
   defaults()
-  try { var sv = JSON.parse(localStorage.getItem(KEY) || 'null'); if (sv) PF.forEach(function (f) { if (isFinite(sv[f[0]])) PR[f[0]] = +sv[f[0]] }) } catch (e) {}
+  try {
+    var sv = JSON.parse(localStorage.getItem(KEY) || 'null')
+    if (sv) {
+      PF.forEach(function (f) { if (sv[f[0]] != null && isFinite(sv[f[0]])) PR[f[0]] = +sv[f[0]] })
+      // Старый прайс сохранял 600 ₽ даже без правки. Переносим только изменённую цену.
+      if (sv.drawerSlidesBasic == null && sv.drawerSlides != null && isFinite(sv.drawerSlides) && +sv.drawerSlides !== 600) PR.drawerSlidesBasic = +sv.drawerSlides
+    }
+  } catch (e) {}
   function saveP() { try { localStorage.setItem(KEY, JSON.stringify(PR)); return true } catch (e) { return false } }
   function WL() { return Math.max(1, PR.wasteFactor) } function WH() { return Math.max(1, PR.wasteFactorHdf) }
 
   // ---------------- состояние, все размеры в мм
-  var g = { L: 1800, H: 2400, D: 600 }, nid = 0, hl = null, back = true
-  var corpus = [{ id: ++nid, t: 'side', q: 2 }, { id: ++nid, t: 'topbot', q: 2 }]
+  var dimKeys = ['L', 'H', 'D'], g = {}, nid = 0, hl = null, back = true
+  dimKeys.forEach(function (k) { g[k] = +$(k).defaultValue })
+  var corpus = []
+  function restoreBody() {
+    ;['side', 'topbot'].forEach(function (type) {
+      var row = corpus.find(function (c) { return c.t === type })
+      if (!row) corpus.push({ id: ++nid, t: type, q: 2 })
+      else if (!row.q) row.q = 2
+    })
+  }
+  restoreBody()
   var posts = []   // стойки: { id, x } x = отступ левой грани стойки от левого края шкафа
   var items = []   // полки, ящики, штанги: { id, t, sec, y (низ детали от пола), h (у ящика), d (глубина полки, null = как шкаф) }
 
@@ -322,12 +349,14 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     var d = g.D, iw = w - 2 * T
     return [['Боковина короба', d, h, 2], ['Перед и зад короба', iw, h, 2], ['Дно короба', iw, d - 2 * T, 1]]
   }
+  var slideNames = { basic: 'Без доводчика', soft: 'С доводчиком' }
+  function slideCost(it) { return it.slideQty * PR[it.slidesType === 'soft' ? 'drawerSlidesSoft' : 'drawerSlidesBasic'] }
   var PANEL = { side: 1, topbot: 1, stoyka: 1, polka: 1 }
   function line(r) {           // ldsp/hdf = площадь без обрезков, edge = м кромки, piece = штучное
     var s = size(r), q = r.q
     if (PANEL[r.t]) return { ldsp: s[0] * s[1] / 1e6 * q, hdf: 0, edge: s[0] / 1000 * q, piece: 0 }
     if (r.t === 'back') return { ldsp: 0, hdf: s[0] * s[1] / 1e6, edge: 0, piece: 0 }
-    if (r.t === 'yaschik') { var a = 0; box(s[0], s[1]).forEach(function (b) { a += b[1] * b[2] / 1e6 * b[3] }); return { ldsp: a * q, hdf: 0, edge: 0, piece: q * PR.drawerSlides } }
+    if (r.t === 'yaschik') { var a = 0; box(s[0], s[1]).forEach(function (b) { a += b[1] * b[2] / 1e6 * b[3] }); return { ldsp: a * q, hdf: 0, edge: 0, piece: q * slideCost(r.ref) } }
     var round = r.ref.rod !== 'slide'
     return { ldsp: 0, hdf: 0, edge: 0, piece: round ? s[0] / 1000 * PR.rodRound * q : PR.rodSlide * q, len: s[0] / 1000 * q }
   }
@@ -336,7 +365,7 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     var t = { ldsp: 0, hdf: 0, edge: 0, nd: 0, slides: 0, rodC: 0, nRound: 0, lenRound: 0, nSlide: 0 }
     rowsAll().forEach(function (r) {
       var l = line(r); t.ldsp += l.ldsp; t.hdf += l.hdf; t.edge += l.edge
-      if (r.t === 'yaschik') { t.nd += r.q; t.slides += l.piece }
+      if (r.t === 'yaschik') { t.nd += r.ref.slideQty * r.q; t.slides += l.piece }
       if (r.t === 'shtanga') { t.rodC += l.piece; if (r.ref.rod === 'slide') t.nSlide++; else { t.nRound++; t.lenRound += l.len } }
     })
     t.ldspW = t.ldsp * WL(); t.ldspC = t.ldspW * PR.ldsp; t.hdfW = t.hdf * WH(); t.hdfC = t.hdfW * PR.hdf; t.edgeC = t.edge * PR.edge
@@ -357,7 +386,10 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
       if (r.t === 'polka') dim = '<span class="dim cell">' + s[0] + '<b>×</b><input aria-label="Полка: глубина, мм" data-k="d" inputmode="numeric" value="' + s[1] + '"></span>'
       else if (r.t === 'yaschik') {
         dim = '<span class="dim cell">' + s[0] + '<b>×</b><input aria-label="Ящик: высота короба, мм" data-k="h" inputmode="numeric" value="' + s[1] + '"><span class="sub">ширина × высота короба</span></span>'
-        sub = '<details class="parts"><summary>короб ' + m2f(l.ldsp) + ' м² + направляющие ' + rub(PR.drawerSlides) + '</summary><ul>' + box(s[0], s[1]).map(function (b) { return '<li>' + b[0] + ': ' + b[1] + ' × ' + b[2] + ' × ' + b[3] + ' шт. = ' + m2f(b[1] * b[2] / 1e6 * b[3]) + ' м²</li>' }).join('') + '</ul></details>'
+        pos += '<div class="drawer-slides cell"><select aria-label="Тип направляющих" data-k="slidesType">' +
+          Object.keys(slideNames).map(function (type) { return '<option value="' + type + '"' + (it.slidesType === type ? ' selected' : '') + '>' + slideNames[type] + '</option>' }).join('') +
+          '</select><label for="slides' + r.id + '">Компл.</label><input id="slides' + r.id + '" aria-label="Количество комплектов направляющих" type="number" min="0" step="1" inputmode="numeric" data-k="slideQty" value="' + it.slideQty + '"></div>'
+        sub = '<details class="parts"><summary>короб ' + m2f(l.ldsp) + ' м² + направляющие ' + rub(l.piece) + '</summary><ul>' + box(s[0], s[1]).map(function (b) { return '<li>' + b[0] + ': ' + b[1] + ' × ' + b[2] + ' × ' + b[3] + ' шт. = ' + m2f(b[1] * b[2] / 1e6 * b[3]) + ' м²</li>' }).join('') + '</ul></details>'
       }
       else if (r.t === 'shtanga') dim = '<span class="dim">' + s[0] + '<span class="sub">длина</span></span>'
       else dim = '<span class="dim">' + s[0] + '<b>×</b>' + s[1] + '</span>'
@@ -375,7 +407,7 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     var t = totals()
     var list = [['Площадь ЛДСП (детали и короба ящиков)', m2f(t.ldsp) + ' м²'], ['С учётом обрезков ×' + f2(WL()), m2f(t.ldspW) + ' м²', 'key'], ['ЛДСП по ' + rub(PR.ldsp) + '/м²', rub(t.ldspC)]]
     if (back) list.push(['ХДФ задняя стенка ' + m2f(t.hdf) + ' м² ×' + f2(WH()) + ' = ' + m2f(t.hdfW) + ' м²', rub(t.hdfC)])
-    list.push(['Кромка, ' + m2f(t.edge) + ' м', rub(t.edgeC)], ['Направляющие, ящиков ' + t.nd, rub(t.slides)],
+    list.push(['Кромка, ' + m2f(t.edge) + ' м', rub(t.edgeC)], ['Направляющие, комплектов ' + t.nd, rub(t.slides)],
       ['Штанги: круглых ' + t.nRound + ' (' + f2(t.lenRound.toFixed(3)) + ' м), выдвижных ' + t.nSlide, rub(t.rodC)], ['Наценка ' + f2(t.mk) + ' %', rub(t.mkC)])
     $('sum').innerHTML = list.map(function (x) { return '<div' + (x[2] ? ' class="key"' : '') + '><dt>' + esc(x[0]) + '</dt><dd>' + x[1] + '</dd></div>' }).join('')
     $('total').textContent = 'Итого ' + rub(t.total)
@@ -434,7 +466,10 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     return '<g pointer-events="none"><rect x="' + x + '" y="' + y + '" width="' + wpx + '" height="24" rx="7" fill="#24212B"/><text x="' + (x + wpx / 2) + '" y="' + (y + 16) + '" text-anchor="middle" font-family="Manrope,sans-serif" font-size="12.5" font-weight="700" fill="#fff">' + esc(txt) + '</text></g>'
   }
 
-  function all() { renderSecSelect(); renderRows(); renderTotals(); scheme() }
+  function all() {
+    $('restore-body').disabled = corpus.filter(function (c) { return c.q > 0 }).length === 2
+    renderSecSelect(); renderRows(); renderTotals(); scheme()
+  }
   function say(m, isBad) { var e = $('toast'); e.textContent = m; e.classList.toggle('bad', !!isBad); clearTimeout(say.t); say.t = setTimeout(function () { e.textContent = '' }, 3500) }
   function byId(id) { return posts.filter(function (p) { return p.id === id })[0] || items.filter(function (o) { return o.id === id })[0] || corpus.filter(function (c) { return c.id === id })[0] }
 
@@ -449,6 +484,7 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
         posts.push(p); hl = p.id; all(); return say('Стойка встала в секцию ' + (sec + 1) + ', X ' + p.x + ' мм')
       }
       var it = { id: ++nid, t: t, sec: sec, y: 0, h: t === 'yaschik' ? Math.max(50, Math.round(num($('aDH').value, DH))) : 0, d: null, rod: t === 'shtanga' ? $('aRod').value : undefined }
+      if (t === 'yaschik') { it.slidesType = 'basic'; it.slideQty = 1 }
       var want = num($('aY').value, null), y = want == null ? freeMid(it, sec) : fitY(it, Math.round(want), sec)
       if (y == null) return say('В секции ' + (sec + 1) + ' нет места для: ' + NAMES[t].toLowerCase(), true)
       it.y = y; items.push(it); hl = it.id; all()
@@ -468,6 +504,8 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     else if (k === 'h') { if (v != null) { var old = o.h; o.h = Math.max(50, Math.round(v)); var y2 = fitY(o, o.y, o.sec); if (y2 == null) { o.h = old; say('Такой ящик не помещается', true) } else o.y = y2 } }
     else if (k === 'd') { if (v != null) o.d = Math.min(g.D, Math.max(50, Math.round(v))) }
     else if (k === 'rod') { o.rod = el.value }
+    else if (k === 'slidesType') { o.slidesType = el.value }
+    else if (k === 'slideQty' && v != null) { o.slideQty = Math.max(0, Math.round(v)) }
     hl = o.id; all()
   })
   $('rows').addEventListener('click', function (e) {
@@ -483,10 +521,27 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
   })
 
   // ---------------- габариты, материал, наценка
-  ;['L', 'H', 'D'].forEach(function (k) {
+  dimKeys.forEach(function (k) {
     $(k).addEventListener('change', function () { g[k] = Math.round(Math.max(+this.min, Math.min(+this.max, num(this.value, g[k])))); this.value = g[k]; settle(); all() })
   })
   $('back').addEventListener('change', function () { back = this.checked; all() })
+
+  $('restore-body').addEventListener('click', function () {
+    restoreBody()
+    $('body-status').textContent = 'Корпус добавлен'
+    all()
+  })
+  $('new-calc').addEventListener('click', function () {
+    if (!window.confirm('Начать новый расчёт? Текущие детали и габариты будут сброшены. Цены сохранятся.')) return
+    dimKeys.forEach(function (k) { $(k).value = $(k).defaultValue; g[k] = +$(k).value })
+    nid = 0; hl = null; drag = null
+    corpus = []; posts = []; items = []
+    restoreBody()
+    back = $('back').checked = $('back').defaultChecked
+    $('aSec').value = '0'; $('aY').value = ''; $('aDH').value = DH; $('aRod').selectedIndex = 0
+    $('body-status').textContent = ''; $('toast').textContent = ''; $('toast2').textContent = ''
+    all()
+  })
 
   // ---------------- панель «Цены»: поля ввода, сохранение в браузере, сброс к SETTINGS
   function renderPrices() {
@@ -528,11 +583,12 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     rowsAll().forEach(function (r) {
       var s = size(r), l = line(r), it = r.ref
       var pos = r.t === 'stoyka' ? 'X ' + it.x : it ? 'секция ' + (it.sec + 1) + ', от пола ' + it.y + (r.t === 'shtanga' ? (it.rod === 'slide' ? ', выдвижная' : ', круглая') : '') : r.t === 'back' ? 'ХДФ' : 'корпус'
+      if (r.t === 'yaschik') pos += ', направляющие: ' + slideNames[it.slidesType].toLowerCase() + ', ' + it.slideQty + ' компл.'
       out.push(NAMES[r.t] + '\t' + pos + '\t' + s.join(' × ') + '\t' + r.q + '\t' + (l.ldsp + l.hdf ? m2f(l.ldsp + l.hdf) : '—') + '\t' + rub(rowCost(l)))
     })
     out.push('', 'Площадь ЛДСП\t' + m2f(t.ldsp) + ' м²', 'С учётом обрезков ×' + f2(WL()) + '\t' + m2f(t.ldspW) + ' м²\t' + rub(t.ldspC))
     if (back) out.push('ХДФ ' + m2f(t.hdf) + ' м² ×' + f2(WH()) + '\t' + m2f(t.hdfW) + ' м²\t' + rub(t.hdfC))
-    out.push('Кромка ' + m2f(t.edge) + ' м\t' + rub(t.edgeC), 'Направляющие ' + t.nd + ' ящ.\t' + rub(t.slides), 'Штанги\t' + rub(t.rodC), 'Наценка ' + f2(t.mk) + ' %\t' + rub(t.mkC), 'Итого\t' + rub(t.total))
+    out.push('Кромка ' + m2f(t.edge) + ' м\t' + rub(t.edgeC), 'Направляющие ' + t.nd + ' компл.\t' + rub(t.slides), 'Штанги\t' + rub(t.rodC), 'Наценка ' + f2(t.mk) + ' %\t' + rub(t.mkC), 'Итого\t' + rub(t.total))
     return out.join('\n')
   }
   function toast2(m) { $('toast2').textContent = m; setTimeout(function () { $('toast2').textContent = '' }, 2500) }
