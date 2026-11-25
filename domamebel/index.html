@@ -75,7 +75,7 @@ select { width:100%; border:1.5px solid var(--line); border-radius:12px; backgro
   #h-add + .three > :first-child { grid-column:1 / -1 }
   #h-add ~ .two { grid-template-columns:1fr }
 }
-.add { border:1.5px solid var(--acc); color:var(--acc-ink); background:var(--acc-soft); border-radius:12px; padding:11px 8px; font-weight:800 }
+.add { border:1.5px solid var(--acc); color:var(--acc-ink); background:var(--acc-soft); border-radius:12px; padding:11px 8px; font-weight:800; touch-action:manipulation }
 .add:hover { background:var(--acc); color:var(--on-acc) }
 .add[data-add="verticalShelf"] { grid-column:1 / -1 }
 .hint { color:var(--sub); font-size:13px; margin-top:10px }
@@ -85,10 +85,12 @@ select { width:100%; border:1.5px solid var(--line); border-radius:12px; backgro
 .scheme { background:var(--soft); border-radius:14px; overflow:hidden; touch-action:none; user-select:none; -webkit-user-select:none }
 .scheme svg { display:block; width:100%; height:auto }
 .scheme [data-drag] { cursor:grab }
-.scheme [data-drag="v"] { cursor:ns-resize } .scheme [data-drag="h"] { cursor:ew-resize }
+.scheme [data-drag="v"] { cursor:ns-resize } .scheme [data-drag="h"], .scheme [data-drag="shelf"] { cursor:ew-resize }
 .scheme .sec { cursor:pointer }
 .legend { display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:10px; color:var(--sub); font-size:13px }
 .legend i { display:inline-block; width:12px; height:12px; border-radius:3px; vertical-align:-1px; margin-right:5px }
+#shelf-layout { border-top:1px solid var(--line); padding-top:10px }
+#shelf-layout p + p { margin-top:4px }
 
 .tbl { overflow-x:auto; -webkit-overflow-scrolling:touch }
 table { width:100%; border-collapse:collapse; min-width:760px; font-variant-numeric:tabular-nums }
@@ -106,7 +108,7 @@ tr.bad td { background:#FDECEA }
 .cell select { width:auto; padding:6px 4px }
 .cell input:focus, .cell select:focus { outline:none; border-color:var(--acc); background:#fff }
 .dim { white-space:nowrap } .dim b { color:var(--sub); font-weight:600; margin:0 3px }
-.del { width:34px; height:34px; border-radius:9px; border:1.5px solid var(--line); background:none; font-size:18px; line-height:1; color:var(--sub) }
+.del { width:34px; height:34px; border-radius:9px; border:1.5px solid var(--line); background:none; font-size:18px; line-height:1; color:var(--sub); touch-action:manipulation }
 .del:hover { border-color:var(--bad); color:var(--bad) }
 .empty { color:var(--sub); padding:16px 6px }
 @media (max-width:640px) {  /* телефон: деталь карточкой */
@@ -204,24 +206,28 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
           <div class="fld"><label for="aY">Высота от пола</label><div class="inp"><input id="aY" type="number" inputmode="numeric" placeholder="авто"><span>мм</span></div></div>
           <div class="fld"><label for="aDH">Высота ящика</label><div class="inp"><input id="aDH" type="number" inputmode="numeric" min="50"><span>мм</span></div></div>
         </div>
-        <div class="two"><div class="fld"><label for="aRod">Штанга</label><select id="aRod"><option value="round">Круглая (за пог. м)</option><option value="slide">Выдвижная (за шт.)</option></select></div></div>
+        <div class="two">
+          <div class="fld"><label for="aRod">Штанга</label><select id="aRod"><option value="round">Круглая (за пог. м)</option><option value="slide">Выдвижная (за шт.)</option></select></div>
+          <div class="fld"><label for="aShelfGap">Промежуток для перегородки</label><select id="aShelfGap"></select></div>
+        </div>
         <div class="adds">
           <button class="add" type="button" data-add="polka">+ Полка</button>
           <button class="add" type="button" data-add="stoyka">+ Стойка</button>
           <button class="add" type="button" data-add="yaschik">+ Ящик</button>
           <button class="add" type="button" data-add="shtanga">+ Штанга</button>
-          <button class="add" type="button" data-add="verticalShelf">+ Вертикальная полка</button>
+          <button class="add" type="button" data-add="verticalShelf">+ Вертикальная перегородка</button>
         </div>
         <p class="hint">Полка, ящик и штанга встают в выбранную секцию на указанную высоту (пусто = в свободное место). Стойка делит выбранную секцию пополам. Потом всё можно двигать на схеме или числами в таблице. Секцию можно выбрать и нажатием на схему.</p>
-        <p class="hint">Вертикальная полка встаёт по центру секции в самый высокий свободный промежуток. Её размеры пересчитываются при изменении секции.</p>
+        <p class="hint">Выберите промежуток и добавьте нужное число перегородок. Тяните зелёные детали влево или вправо для настройки ширины, вверх или вниз для настройки высоты.</p>
         <p class="toast" id="toast" role="status"></p>
       </section>
     </div>
 
     <section class="panel" aria-labelledby="h-sch">
       <h2 id="h-sch">Схема спереди</h2>
-      <div class="scheme" id="scheme"><svg id="svg" viewBox="0 0 700 560" role="img" aria-label="Схема шкафа спереди"></svg></div>
-      <div class="legend"><span><i style="background:#B9A88F"></i>корпус</span><span><i style="background:#8C7A60"></i>стойки (тянуть вбок)</span><span><i style="background:#5B43B5"></i>полки</span><span><i style="background:#086B60"></i>вертикальные полки</span><span><i style="background:#D9C9AE;border:1px solid #9C8E78"></i>ящики</span><span><i style="background:#4A4652"></i>штанги</span></div>
+      <div class="scheme" id="scheme"><svg id="svg" viewBox="0 0 700 560" role="img" aria-label="Схема шкафа спереди"><g id="svg-scene"></g><g id="shelf-targets" class="no-print"></g></svg></div>
+      <div class="legend"><span><i style="background:#B9A88F"></i>корпус</span><span><i style="background:#8C7A60"></i>стойки</span><span><i style="background:#5B43B5"></i>полки</span><span><i style="background:#086B60"></i>перегородки</span><span><i style="background:#D9C9AE;border:1px solid #9C8E78"></i>ящики</span><span><i style="background:#4A4652"></i>штанги</span></div>
+      <div id="shelf-layout" class="hint" hidden></div>
     </section>
   </div>
 
@@ -261,9 +267,9 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
   var num = function (v, d) { v = parseFloat(String(v).replace(',', '.')); return isFinite(v) ? v : d }
   var T = Math.max(1, num(S.thickness, 16)), MIN = Math.max(20, num(S.minSection, 100)), ROD = Math.max(5, num(S.rodSpace, 30))
   var DH = Math.max(50, num(S.drawerHeight, 150))
-  var NAMES = { side: 'Боковина', topbot: 'Крыша / дно', stoyka: 'Стойка', polka: 'Полка', verticalShelf: 'Вертикальная полка', yaschik: 'Ящик', shtanga: 'Штанга', back: 'Задняя стенка' }
-  var SHELF_NO_SPACE = 'Нет места для вертикальной полки'
-  var SHELF_PENDING = 'Итог без полок, для которых нет места'
+  var NAMES = { side: 'Боковина', topbot: 'Крыша / дно', stoyka: 'Стойка', polka: 'Полка', verticalShelf: 'Вертикальная перегородка', yaschik: 'Ящик', shtanga: 'Штанга', back: 'Задняя стенка' }
+  var SHELF_NO_SPACE = 'Нет места для перегородки'
+  var SHELF_PENDING = 'Итог без перегородок, для которых нет места'
   // ---------------- цены: исходные из SETTINGS, свои сохраняются в браузере
   var PF = [['ldsp', 'ЛДСП', '₽/м²'], ['hdf', 'ХДФ задняя стенка', '₽/м²'], ['wasteFactor', 'Обрезки ЛДСП, коэффициент', '×'], ['wasteFactorHdf', 'Обрезки ХДФ, коэффициент', '×'],
     ['rodRound', 'Штанга круглая', '₽/пог. м'], ['rodSlide', 'Штанга выдвижная', '₽/шт.'], ['drawerSlidesBasic', 'Направляющие без доводчика', '₽/компл.'], ['drawerSlidesSoft', 'Направляющие с доводчиком', '₽/компл.'], ['edge', 'Кромка', '₽/пог. м'], ['markup', 'Наценка', '%']]
@@ -295,7 +301,7 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
   restoreBody()
   var posts = []   // стойки: { id, x } x = отступ левой грани стойки от левого края шкафа
   var items = []   // полки, ящики, штанги: { id, t, sec, y (низ детали от пола), h (у ящика), d (глубина полки, null = как шкаф) }
-  var verticalShelves = []   // независимые детали: { id, sec }
+  var verticalShelves = []   // { id, sec, x, y } — левая грань от края шкафа, нижняя грань от пола
 
   $('aDH').value = DH; $('tmm').textContent = T
 
@@ -310,7 +316,7 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
   function depth(it) { return it.d == null ? g.D : it.d }
 
   function shelfSpans(sec) {
-    if (secW(sec) < T) return []
+    if (secW(sec) < 2 * MIN + T) return []
     var start = lo(), spans = []
     var obstacles = items.filter(function (it) { return it.sec === sec }).sort(function (a, b) { return a.y - b.y })
     obstacles.forEach(function (it) {
@@ -322,13 +328,93 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     return spans.sort(function (a, b) { return b.h - a.h || a.y - b.y })
   }
 
-  function shelfRows() {
-    var spans = [], used = []
-    return verticalShelves.map(function (shelf) {
-      var sec = shelf.sec
-      if (!spans[sec]) { spans[sec] = shelfSpans(sec); used[sec] = 0 }
-      return { id: shelf.id, t: 'verticalShelf', q: 1, ref: shelf, span: spans[sec][used[sec]++] }
+  function closestShelfPosition(spans, wanted) {
+    var best, distance = Infinity
+    spans.forEach(function (gap) {
+      var y = Math.min(Math.max(wanted, gap.y), gap.y + gap.h - 1)
+      var delta = Math.abs(wanted - y)
+      if (delta < distance) { best = { gap: gap, y: y, h: gap.y + gap.h - y }; distance = delta }
     })
+    return best
+  }
+
+  function shelfRows() {
+    var bySection = []
+    var rows = verticalShelves.map(function (shelf) {
+      var sec = shelf.sec
+      if (!bySection[sec]) bySection[sec] = shelfSpans(sec).map(function (gap) { return { gap: gap, rows: [] } })
+      var row = { id: shelf.id, t: 'verticalShelf', q: 1, ref: shelf }
+      var bands = bySection[sec], position = closestShelfPosition(bands.map(function (band) { return band.gap }), shelf.y)
+      if (position) {
+        row.span = position
+        bands.find(function (band) { return band.gap === position.gap }).rows.push(row)
+      }
+      return row
+    })
+    bySection.forEach(function (bands, sec) {
+      var left = secX(sec), right = left + secW(sec)
+      var capacity = Math.floor((secW(sec) - MIN) / (MIN + T))
+      bands.forEach(function (band) {
+        // При сужении сначала сохраняем ранее добавленные перегородки, лишние помечаем в смете.
+        band.rows.slice(capacity).forEach(function (row) { row.span = null })
+        var fitting = band.rows.slice(0, capacity).sort(function (a, b) { return a.ref.x - b.ref.x || a.id - b.id })
+        var edge = left
+        fitting.forEach(function (row, i) {
+          var limit = right - (fitting.length - i) * (MIN + T)
+          row.span.x = Math.min(Math.max(row.ref.x, edge + MIN), limit)
+          edge = row.span.x + T
+        })
+      })
+    })
+    return rows
+  }
+
+  function compartmentWidths(sec, partitions) {
+    var left = secX(sec), right = left + secW(sec)
+    var widths = partitions.slice().sort(function (a, b) { return a.span.x - b.span.x }).map(function (row) {
+      var width = row.span.x - left
+      left = row.span.x + T
+      return width
+    })
+    widths.push(right - left)
+    return widths
+  }
+
+  function shelfSlots(sec, gap, rows) {
+    var left = secX(sec)
+    var partitions = rows.filter(function (row) { return row.ref.sec === sec && row.span && row.span.gap.y === gap.y })
+    return compartmentWidths(sec, partitions).map(function (width) {
+      var slot = { from: left + MIN, to: left + width - MIN - T, width: width }
+      left += width + T
+      return slot
+    }).filter(function (slot) { return slot.from <= slot.to })
+  }
+
+  function compartmentLines(rows) {
+    var bands = new Map(), lines = []
+    rows.forEach(function (r) {
+      var key = r.ref.sec + ':' + r.span.gap.y
+      if (!bands.has(key)) bands.set(key, [])
+      bands.get(key).push(r)
+    })
+    bands.forEach(function (partitions) {
+      var sec = partitions[0].ref.sec, gap = partitions[0].span.gap
+      var heights = Array.from(new Set(partitions.map(function (row) { return row.span.y }))).sort(function (a, b) { return a - b })
+      heights.forEach(function (y, i) {
+        var widths = compartmentWidths(sec, partitions.filter(function (row) { return row.span.y <= y }))
+        lines.push({ sec: sec, from: y, to: heights[i + 1] || gap.y + gap.h, widths: widths })
+      })
+    })
+    return lines.sort(function (a, b) { return a.sec - b.sec || a.from - b.from })
+  }
+
+  function compartmentPosition(line) {
+    return 'Секция ' + (line.sec + 1) + ', ' + line.from + '–' + line.to + ' мм от пола'
+  }
+
+  function shelfPosition(row) {
+    if (!row.span) return SHELF_NO_SPACE
+    return 'слева в секции ' + (row.span.x - secX(row.ref.sec)) + ' мм, от пола ' + row.span.y + ' мм'
   }
 
   // ближайшее свободное место по высоте в секции: детали не залезают друг на друга и за габариты
@@ -418,7 +504,7 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     rowsAll().forEach(function (r) {
       var s = size(r), l = line(r), it = r.ref, nm = NAMES[r.t], pos = '', dim = '', sub = ''
       if (r.t === 'stoyka') pos = '<div class="pos cell"><label for="x' + r.id + '">X</label><input id="x' + r.id + '" data-k="x" inputmode="numeric" value="' + it.x + '"><span class="sub">от левого края</span></div>'
-      else if (r.t === 'verticalShelf') pos = '<span class="sub">' + (r.span ? 'от пола ' + r.span.y + ' мм' : SHELF_NO_SPACE) + '</span>'
+      else if (r.t === 'verticalShelf') pos = '<span class="sub">' + shelfPosition(r) + '</span>'
       else if (it) pos = '<div class="pos cell"><label for="s' + r.id + '">секция</label><select id="s' + r.id + '" data-k="sec">' + secOpts(it.sec) + '</select><label for="y' + r.id + '">h</label><input id="y' + r.id + '" data-k="y" inputmode="numeric" value="' + it.y + '"></div>'
       else pos = '<span class="sub">' + (r.t === 'back' ? 'ХДФ' : 'корпус') + '</span>'
       if (r.t === 'polka') dim = '<span class="dim cell">' + s[0] + '<b>×</b><input aria-label="Полка: глубина, мм" data-k="d" inputmode="numeric" value="' + s[1] + '"></span>'
@@ -459,10 +545,31 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     $('aSec').innerHTML = h
   }
 
+  function renderShelfGaps(y) {
+    var select = $('aShelfGap'), sec = selectedSection(), gaps = shelfSpans(sec)
+    var previous = select.dataset.sec === String(sec) ? select.value : ''
+    var chosen = y == null ? previous : String(y)
+    if (!gaps.some(function (gap) { return String(gap.y) === chosen })) chosen = gaps.length ? String(gaps[0].y) : ''
+    select.innerHTML = gaps.slice().sort(function (a, b) { return a.y - b.y }).map(function (gap) {
+      return '<option value="' + gap.y + '">' + gap.y + '–' + (gap.y + gap.h) + ' мм от пола</option>'
+    }).join('') || '<option value="">Нет места</option>'
+    select.value = chosen; select.disabled = !gaps.length; select.dataset.sec = sec
+  }
+
   // ---------------- схема
   var V = { W: 700, H: 560, pad: 34 }, K, X0, Y0
   function geo() { K = Math.min((V.W - 2 * V.pad) / g.L, (V.H - 2 * V.pad - 10) / g.H); X0 = (V.W - g.L * K) / 2; Y0 = (V.H - 10 - g.H * K) / 2 }
   function sx(mm) { return X0 + mm * K } function sy(mm) { return Y0 + (g.H - mm) * K }      // мм от левого края / от пола → точки схемы
+  function shelfTarget(id, x, y, width, height) {
+    var layer = $('shelf-targets'), target = layer.querySelector('[data-id="' + id + '"]')
+    if (!target) {
+      target = document.createElementNS(layer.namespaceURI, 'rect')
+      target.setAttribute('fill', 'transparent'); target.dataset.drag = 'shelf'; target.dataset.id = id
+      layer.appendChild(target)
+    }
+    target.setAttribute('x', x); target.setAttribute('y', y)
+    target.setAttribute('width', width); target.setAttribute('height', height)
+  }
   function scheme(drag) {
     geo()
     var hasSide = corpus.some(function (c) { return c.t === 'side' && c.q > 0 }), hasTB = corpus.some(function (c) { return c.t === 'topbot' && c.q > 0 })
@@ -470,19 +577,41 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     var sel = +$('aSec').value || 0
     s += '<rect x="' + X0 + '" y="' + Y0 + '" width="' + w + '" height="' + (g.H * K) + '" fill="#FBF8F3" stroke="#B9A88F" stroke-width="1.5"' + (hasSide && hasTB ? '' : ' stroke-dasharray="5 4"') + '/>'
     for (var i = 0; i < nSec(); i++) s += '<rect class="sec" data-sec="' + i + '" x="' + sx(secX(i)) + '" y="' + sy(hi()) + '" width="' + Math.max(1, secW(i) * K) + '" height="' + ((hi() - lo()) * K) + '" fill="' + (i === sel ? '#EFE9FB' : 'transparent') + '"/>'
+    var selectedGap = shelfSpans(sel).find(function (gap) { return String(gap.y) === $('aShelfGap').value })
+    if (selectedGap && selectedGap.h < hi() - lo()) s += '<rect class="no-print" pointer-events="none" x="' + sx(secX(sel)) + '" y="' + sy(selectedGap.y + selectedGap.h) + '" width="' + (secW(sel) * K) + '" height="' + (selectedGap.h * K) + '" fill="#E2D9F6"/>'
     if (hasSide) s += '<rect x="' + sx(0) + '" y="' + Y0 + '" width="' + t + '" height="' + (g.H * K) + '" fill="#B9A88F"/><rect x="' + sx(g.L - T) + '" y="' + Y0 + '" width="' + t + '" height="' + (g.H * K) + '" fill="#B9A88F"/>'
     if (hasTB) s += '<rect x="' + sx(T) + '" y="' + sy(g.H) + '" width="' + ((g.L - 2 * T) * K) + '" height="' + t + '" fill="#B9A88F"/><rect x="' + sx(T) + '" y="' + sy(T) + '" width="' + ((g.L - 2 * T) * K) + '" height="' + t + '" fill="#B9A88F"/>'
-    shelfRows().forEach(function (r) {
-      if (!r.span) return
-      var sec = r.ref.sec, x = sx(secX(sec) + secW(sec) / 2) - t / 2
-      s += '<rect data-vertical-shelf="' + r.id + '" pointer-events="none" x="' + x + '" y="' + sy(r.span.y + r.span.h) + '" width="' + t + '" height="' + (r.span.h * K) + '" fill="#086B60"' + (hl === r.id ? ' stroke="#24212B" stroke-width="1.5"' : '') + '/>'
-    })
     items.forEach(function (it) {
       var x = sx(secX(it.sec)), ww = Math.max(1, secW(it.sec) * K), y = sy(it.y + itemH(it)), hh = itemH(it) * K, b = bad(it), on = hl === it.id
       if (it.t === 'polka') s += '<rect x="' + x + '" y="' + y + '" width="' + ww + '" height="' + Math.max(3, hh) + '" fill="' + (b ? '#B42318' : '#5B43B5') + '"' + (on ? ' stroke="#24212B" stroke-width="1.5"' : '') + '/>'
       if (it.t === 'yaschik') s += '<rect x="' + (x + 1.5) + '" y="' + (y + 1) + '" width="' + (ww - 3) + '" height="' + Math.max(4, hh - 2) + '" rx="2" fill="' + (b ? '#F6C9C4' : '#D9C9AE') + '" stroke="' + (on ? '#24212B' : '#9C8E78') + '" stroke-width="' + (on ? 1.8 : 1) + '"/><rect x="' + (x + ww / 2 - 9) + '" y="' + (y + hh / 2 - 1.5) + '" width="18" height="3" rx="1.5" fill="#9C8E78"/>'
       if (it.t === 'shtanga') s += '<rect x="' + x + '" y="' + (y + hh / 2 - 2) + '" width="' + ww + '" height="4" rx="2" fill="' + (b ? '#B42318' : '#4A4652') + '"/><path d="M' + (x + 6) + ' ' + (y + hh / 2) + 'v' + (-hh / 2 + 2) + 'M' + (x + ww - 6) + ' ' + (y + hh / 2) + 'v' + (-hh / 2 + 2) + '" stroke="#4A4652" stroke-width="2"/>'
       s += '<rect data-drag="v" data-id="' + it.id + '" x="' + x + '" y="' + (y + hh / 2 - Math.max(11, hh / 2)) + '" width="' + ww + '" height="' + Math.max(22, hh) + '" fill="transparent"/>'
+    })
+    var placedShelves = shelfRows().filter(function (r) { return r.span })
+    placedShelves.forEach(function (r) {
+      var sec = r.ref.sec, center = sx(r.span.x + T / 2)
+      var top = sy(r.span.y + r.span.h), height = r.span.h * K
+      var targetW = Math.min((MIN + T) * K, 54), drawnW = Math.min(t, targetW)
+      var targetH = Math.min(r.span.gap.h * K, Math.max(42, height))
+      s += '<rect data-vertical-shelf="' + r.id + '" x="' + (center - drawnW / 2) + '" y="' + top + '" width="' + drawnW + '" height="' + height + '" fill="#086B60"/>'
+      if (hl === r.id) s += '<circle class="no-print" pointer-events="none" cx="' + center + '" cy="' + (top + height / 2) + '" r="6" fill="#086B60" stroke="#fff" stroke-width="1.5"/>'
+      shelfTarget(r.id, center - targetW / 2, top, targetW, targetH)
+    })
+    var lines = compartmentLines(placedShelves), summary = $('shelf-layout')
+    summary.hidden = !lines.length
+    summary.innerHTML = lines.length ? '<strong>Ширина отделений слева направо</strong>' + lines.map(function (line) {
+      return '<p>' + compartmentPosition(line) + ': ' + line.widths.join(' / ') + ' мм</p>'
+    }).join('') : ''
+    lines.forEach(function (line) {
+      var left = secX(line.sec), y = sy((line.from + line.to) / 2)
+      line.widths.forEach(function (width) {
+        if (width * K >= 28 && (line.to - line.from) * K >= 26) s += '<text pointer-events="none" x="' + sx(left + width / 2) + '" y="' + (y + 4) + '" text-anchor="middle" font-family="Manrope,sans-serif" font-size="12" font-weight="800" fill="#354941">' + width + '</text>'
+        left += width + T
+      })
+    })
+    Array.from($('shelf-targets').children).forEach(function (target) {
+      if (!placedShelves.some(function (r) { return r.id === +target.dataset.id })) target.remove()
     })
     sorted().forEach(function (p) {
       var x = sx(p.x), on = hl === p.id
@@ -494,46 +623,100 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     s += '<text x="' + (X0 + w / 2) + '" y="' + (sy(0) + 32) + '" text-anchor="middle" font-family="Manrope,sans-serif" font-size="12.5" font-weight="800" fill="#24212B">' + g.L + ' мм</text>'
     s += '<text x="' + (X0 - 12) + '" y="' + (Y0 + g.H * K / 2) + '" text-anchor="middle" font-family="Manrope,sans-serif" font-size="12.5" font-weight="800" fill="#24212B" transform="rotate(-90 ' + (X0 - 12) + ' ' + (Y0 + g.H * K / 2) + ')">' + g.H + ' мм</text>'
     if (drag) s += tip(drag)
-    $('svg').innerHTML = s
-    $('svg').setAttribute('aria-label', 'Схема шкафа ' + g.L + ' × ' + g.H + ' мм, секций ' + nSec() + (verticalShelves.length ? ', вертикальных полок на схеме ' + $('svg').querySelectorAll('[data-vertical-shelf]').length : ''))
+    $('svg-scene').innerHTML = s
+    $('svg').setAttribute('aria-label', 'Схема шкафа ' + g.L + ' × ' + g.H + ' мм, секций ' + nSec() + (placedShelves.length ? ', перегородок ' + placedShelves.length : ''))
   }
   function tip(d) {             // подпись с размером рядом с тем, что тянем
     var txt, x, y
     if (d.post) {
       var s = sorted(), i = s.indexOf(d.post)
       txt = 'X ' + d.post.x + ' мм · слева ' + secW(i) + ' · справа ' + secW(i + 1); x = sx(d.post.x); y = sy(hi()) + 24
+    } else if (d.shelf) {
+      var row = shelfRows().find(function (r) { return r.id === d.shelf.id })
+      if (!row || !row.span) return ''
+      txt = d.axis === 'y' ? 'От пола ' + row.span.y + ' мм · высота ' + row.span.h + ' мм'
+        : 'Слева в секции ' + (row.span.x - secX(d.shelf.sec)) + ' мм'
+      x = sx(row.span.x + T / 2); y = sy(row.span.y + row.span.h)
     } else {
       var it = d.item, below = lo()
       items.forEach(function (o) { if (o !== it && o.sec === it.sec && o.y + itemH(o) <= it.y) below = Math.max(below, o.y + itemH(o)) })
       txt = 'от пола ' + it.y + ' мм · до детали ниже ' + (it.y - below); x = sx(secX(it.sec) + secW(it.sec) / 2); y = sy(it.y + itemH(it)) - 10
     }
-    var wpx = txt.length * 6.6 + 16; x = Math.min(Math.max(x - wpx / 2, 4), V.W - wpx - 4); y = Math.min(Math.max(y - 26, 4), V.H - 30)
-    return '<g pointer-events="none"><rect x="' + x + '" y="' + y + '" width="' + wpx + '" height="24" rx="7" fill="#24212B"/><text x="' + (x + wpx / 2) + '" y="' + (y + 16) + '" text-anchor="middle" font-family="Manrope,sans-serif" font-size="12.5" font-weight="700" fill="#fff">' + esc(txt) + '</text></g>'
+    var scale = d.shelf ? Math.max(1, V.W / Math.max(250, $('svg').clientWidth)) : 1
+    var wpx = (txt.length * 6.6 + 16) * scale
+    x = Math.min(Math.max(x - wpx / 2, 4), V.W - wpx - 4)
+    y = Math.min(Math.max(y - 26 * scale, 4), V.H - 30 * scale)
+    return '<g class="no-print" pointer-events="none"><rect x="' + x + '" y="' + y + '" width="' + wpx + '" height="' + (24 * scale) + '" rx="' + (7 * scale) + '" fill="#24212B"/><text x="' + (x + wpx / 2) + '" y="' + (y + 16 * scale) + '" text-anchor="middle" font-family="Manrope,sans-serif" font-size="' + (12.5 * scale) + '" font-weight="700" fill="#fff">' + esc(txt) + '</text></g>'
   }
 
   function all() {
     $('restore-body').disabled = corpus.filter(function (c) { return c.q > 0 }).length === 2
-    renderSecSelect(); renderRows(); renderTotals(); scheme()
+    renderSecSelect(); renderShelfGaps(); renderRows(); renderTotals(); scheme()
   }
   function say(m, isBad) { var e = $('toast'); e.textContent = m; e.classList.toggle('bad', !!isBad); clearTimeout(say.t); say.t = setTimeout(function () { e.textContent = '' }, 3500) }
   function byId(id) { return posts.filter(function (p) { return p.id === id })[0] || items.filter(function (o) { return o.id === id })[0] || corpus.filter(function (c) { return c.id === id })[0] }
 
   // ---------------- добавление
+  function selectedSection() { return Math.min(+$('aSec').value || 0, nSec() - 1) }
+
+  function addVerticalShelf() {
+    var sec = selectedSection(), gap = shelfSpans(sec).find(function (g) { return String(g.y) === $('aShelfGap').value })
+    var slots = gap ? shelfSlots(sec, gap, shelfRows()) : []
+    var slot = slots.sort(function (a, b) { return b.width - a.width })[0]
+    if (!slot) return say(SHELF_NO_SPACE + ' в выбранном промежутке', true)
+    var shelf = { id: ++nid, sec: sec, x: Math.round((slot.from + slot.to) / 2), y: gap.y }
+    verticalShelves.push(shelf); hl = shelf.id; all()
+    say('Перегородка добавлена в секцию ' + (sec + 1))
+  }
+
+  function onDetailButton(root, selector, action) {
+    var tap = null, handledTouch = null
+    function targetButton(e) {
+      var button = e.target.closest(selector)
+      return button && root.contains(button) ? button : null
+    }
+    function moved(e) { return Math.hypot(e.clientX - tap.x, e.clientY - tap.y) > 10 }
+    function cancel(e) { if (tap && tap.id === e.pointerId) tap = null }
+    root.addEventListener('pointerdown', function (e) {
+      var button = targetButton(e)
+      handledTouch = null
+      tap = button && e.pointerType === 'touch' && e.isPrimary ? { id: e.pointerId, button: button, x: e.clientX, y: e.clientY } : null
+    })
+    root.addEventListener('pointermove', function (e) {
+      if (tap && tap.id === e.pointerId && moved(e)) tap.moved = true
+    })
+    root.addEventListener('pointercancel', cancel)
+    root.addEventListener('lostpointercapture', cancel)
+    root.addEventListener('pointerup', function (e) {
+      if (!tap || tap.id !== e.pointerId) return
+      var button = tap.button
+      var valid = !tap.moved && !moved(e) && button.contains(document.elementFromPoint(e.clientX, e.clientY))
+      tap = null
+      handledTouch = e.pointerId
+      // Перестроение таблицы при потере фокуса может удалить кнопку до click.
+      if (valid) action(button, true)
+    })
+    root.addEventListener('click', function (e) {
+      var sameTouch = handledTouch !== null && (e.pointerType === 'touch' ? e.pointerId === handledTouch
+        : !e.pointerType && e.detail > 0 && e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents)
+      if (sameTouch) { handledTouch = null; return }
+      var button = targetButton(e)
+      if (button) action(button, false)
+    })
+  }
+
+  var shelfButton = document.querySelector('[data-add="verticalShelf"]')
+  onDetailButton(shelfButton, '[data-add="verticalShelf"]', addVerticalShelf)
+
   document.querySelectorAll('[data-add]').forEach(function (b) {
+    if (b === shelfButton) return
     b.addEventListener('click', function () {
-      var t = b.dataset.add, sec = Math.min(+$('aSec').value || 0, nSec() - 1)
-      if (t === 'verticalShelf') {
-        var existing = verticalShelves.filter(function (shelf) { return shelf.sec === sec }).length
-        if (shelfSpans(sec).length <= existing) return say(SHELF_NO_SPACE + ' в секции ' + (sec + 1), true)
-        var shelf = { id: ++nid, sec: sec }
-        verticalShelves.push(shelf); hl = shelf.id; all()
-        return say('Вертикальная полка добавлена в секцию ' + (sec + 1))
-      }
+      var t = b.dataset.add, sec = selectedSection()
       if (t === 'stoyka') {
         if (secW(sec) < 2 * MIN + T) return say('Секция ' + (sec + 1) + ' слишком узкая для ещё одной стойки', true)
         var p = { id: ++nid, x: Math.round(secX(sec) + (secW(sec) - T) / 2) }
         items.forEach(function (it) { if (it.sec > sec) it.sec++ })   // детали правее сдвигаются на одну секцию, в делимой остаются слева
-        verticalShelves.forEach(function (shelf) { if (shelf.sec > sec) shelf.sec++ })
+        verticalShelves.forEach(function (shelf) { if (shelf.sec > sec || (shelf.sec === sec && shelf.x > p.x)) shelf.sec++ })
         posts.push(p); hl = p.id; all(); return say('Стойка встала в секцию ' + (sec + 1) + ', X ' + p.x + ' мм')
       }
       var it = { id: ++nid, t: t, sec: sec, y: 0, h: t === 'yaschik' ? Math.max(50, Math.round(num($('aDH').value, DH))) : 0, d: null, rod: t === 'shtanga' ? $('aRod').value : undefined }
@@ -544,7 +727,8 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
       say(NAMES[t] + ': секция ' + (sec + 1) + ', от пола ' + y + ' мм' + (want != null && y !== Math.round(want) ? ' (на ' + Math.round(want) + ' занято или выходит за габарит, ближайшее свободное место)' : ''))
     })
   })
-  $('aSec').addEventListener('change', function () { scheme() })
+  $('aSec').addEventListener('change', function () { renderShelfGaps(); scheme() })
+  $('aShelfGap').addEventListener('change', function () { scheme() })
 
   // ---------------- правки в таблице (по Enter или уходу из поля)
   $('rows').addEventListener('change', function (e) {
@@ -561,9 +745,11 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     else if (k === 'slideQty' && v != null) { o.slideQty = Math.max(0, Math.round(v)) }
     hl = o.id; all()
   })
-  $('rows').addEventListener('click', function (e) {
-    var b = e.target.closest('.del'); if (!b) return
-    var id = +b.closest('tr').dataset.id, p = posts.filter(function (x) { return x.id === id })[0]
+  onDetailButton($('rows'), '.del', function (button, touch) {
+    var id = +button.closest('tr').dataset.id
+    var active = document.activeElement
+    if (touch && $('rows').contains(active) && active.matches('input, select')) active.blur()
+    var p = posts.filter(function (x) { return x.id === id })[0]
     if (p) {   // убрали стойку: две секции сливаются в одну
       var j = sorted().indexOf(p)
       posts = posts.filter(function (x) { return x !== p })
@@ -596,7 +782,7 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     corpus = []; posts = []; items = []; verticalShelves = []
     restoreBody()
     back = $('back').checked = $('back').defaultChecked
-    $('aSec').value = '0'; $('aY').value = ''; $('aDH').value = DH; $('aRod').selectedIndex = 0
+    $('aSec').value = '0'; $('aShelfGap').value = ''; $('aY').value = ''; $('aDH').value = DH; $('aRod').selectedIndex = 0
     $('body-status').textContent = ''; $('toast').textContent = ''; $('toast2').textContent = ''
     all()
   })
@@ -619,21 +805,68 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
   var drag = null
   function mm(e) { var pt = $('svg').createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; var q = pt.matrixTransform($('svg').getScreenCTM().inverse()); return { x: (q.x - X0) / K, y: g.H - (q.y - Y0) / K } }
   $('svg').addEventListener('pointerdown', function (e) {
+    if (drag || e.button !== 0) return
     var el = e.target.closest('[data-drag]')
-    if (!el) { var s = e.target.closest('.sec'); if (s) { $('aSec').value = s.dataset.sec; scheme() } return }
-    var o = byId(+el.dataset.id), m = mm(e)
-    drag = el.dataset.drag === 'h' ? { post: o, off: m.x - o.x } : { item: o, off: m.y - o.y }
-    hl = o.id; try { $('svg').setPointerCapture(e.pointerId) } catch (x) {} e.preventDefault(); scheme(drag)
+    if (!el) {
+      var s = e.target.closest('.sec')
+      if (s) {
+        $('aSec').value = s.dataset.sec
+        var position = closestShelfPosition(shelfSpans(+s.dataset.sec), mm(e).y)
+        renderShelfGaps(position && position.gap.y); scheme()
+      }
+      return
+    }
+    var id = +el.dataset.id, m = mm(e)
+    if (el.dataset.drag === 'shelf') {
+      var row = shelfRows().find(function (r) { return r.id === id })
+      if (!row || !row.span) return
+      drag = { shelf: row.ref, start: m, x: row.span.x, y: row.span.y, axis: null }
+      $('aSec').value = row.ref.sec
+      renderShelfGaps(row.span.gap.y)
+    } else {
+      var o = byId(id)
+      drag = el.dataset.drag === 'h' ? { post: o, off: m.x - o.x } : { item: o, off: m.y - o.y }
+    }
+    drag.pointerId = e.pointerId
+    hl = id
+    try { $('svg').setPointerCapture(e.pointerId) } catch (x) {}
+    if (!drag.shelf || e.pointerType !== 'touch') e.preventDefault()
+    scheme(drag)
   })
   $('svg').addEventListener('pointermove', function (e) {
-    if (!drag) return
+    if (!drag || e.pointerId !== drag.pointerId) return
     var m = mm(e)
     if (drag.post) drag.post.x = clampPost(drag.post, Math.round(m.x - drag.off))
+    else if (drag.shelf) {
+      var dx = m.x - drag.start.x, dy = m.y - drag.start.y
+      if (!drag.axis) {
+        if (Math.max(Math.abs(dx), Math.abs(dy)) * K * $('svg').clientWidth / V.W < 3) return
+        drag.axis = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y'
+      }
+      var rows = shelfRows(), active = rows.find(function (r) { return r.id === drag.shelf.id })
+      if (!active || !active.span) return
+      var sec = drag.shelf.sec, others = rows.filter(function (r) { return r !== active })
+      if (drag.axis === 'x') {
+        var slot = shelfSlots(sec, active.span.gap, others).find(function (s) { return s.from <= active.span.x && active.span.x <= s.to })
+        if (!slot) return
+        drag.shelf.x = Math.min(Math.max(drag.x + Math.round(dx), slot.from), slot.to)
+        drag.shelf.y = active.span.y
+      } else {
+        var gaps = shelfSpans(sec).filter(function (gap) {
+          return shelfSlots(sec, gap, others).some(function (s) { return s.from <= drag.x && drag.x <= s.to })
+        })
+        var target = closestShelfPosition(gaps, drag.y + Math.round(dy))
+        if (!target) return
+        drag.shelf.x = drag.x; drag.shelf.y = target.y
+        renderShelfGaps(target.gap.y)
+      }
+      renderRows()
+    }
     else { var y = fitY(drag.item, Math.round(m.y - drag.off), drag.item.sec); if (y != null) drag.item.y = y }
     renderTotals(); scheme(drag)
   })
-  function end() { if (!drag) return; drag = null; all() }
-  $('svg').addEventListener('pointerup', end); $('svg').addEventListener('pointercancel', end)
+  function end(e) { if (!drag || e.pointerId !== drag.pointerId) return; drag = null; all() }
+  $('svg').addEventListener('pointerup', end); $('svg').addEventListener('pointercancel', end); $('svg').addEventListener('lostpointercapture', end)
 
   // ---------------- копировать и печать
   function text() {
@@ -641,11 +874,16 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     rowsAll().forEach(function (r) {
       var s = size(r), l = line(r), it = r.ref
       var pos
-      if (r.t === 'verticalShelf') pos = 'секция ' + (it.sec + 1) + ', ' + (r.span ? 'от пола ' + r.span.y + ' мм' : SHELF_NO_SPACE)
+      if (r.t === 'verticalShelf') pos = 'секция ' + (it.sec + 1) + ', ' + shelfPosition(r)
       else pos = r.t === 'stoyka' ? 'X ' + it.x : it ? 'секция ' + (it.sec + 1) + ', от пола ' + it.y + (r.t === 'shtanga' ? (it.rod === 'slide' ? ', выдвижная' : ', круглая') : '') : r.t === 'back' ? 'ХДФ' : 'корпус'
       if (r.t === 'yaschik') pos += ', направляющие: ' + slideNames[it.slidesType].toLowerCase() + ', ' + it.slideQty + ' компл.'
       out.push(NAMES[r.t] + '\t' + pos + '\t' + (s.join(' × ') || '—') + '\t' + r.q + '\t' + (l.ldsp + l.hdf ? m2f(l.ldsp + l.hdf) : '—') + '\t' + (r.t === 'verticalShelf' && !r.span ? '—' : rub(rowCost(l))))
     })
+    var lines = compartmentLines(shelfRows().filter(function (r) { return r.span }))
+    if (lines.length) {
+      out.push('', 'Ширина отделений слева направо')
+      lines.forEach(function (line) { out.push(compartmentPosition(line) + '\t' + line.widths.join(' / ') + ' мм') })
+    }
     out.push('', 'Площадь ЛДСП\t' + m2f(t.ldsp) + ' м²', 'С учётом обрезков ×' + f2(WL()) + '\t' + m2f(t.ldspW) + ' м²\t' + rub(t.ldspC))
     if (back) out.push('ХДФ ' + m2f(t.hdf) + ' м² ×' + f2(WH()) + '\t' + m2f(t.hdfW) + ' м²\t' + rub(t.hdfC))
     out.push('Кромка ' + m2f(t.edge) + ' м\t' + rub(t.edgeC), 'Направляющие ' + t.nd + ' компл.\t' + rub(t.slides), 'Штанги\t' + rub(t.rodC), 'Наценка ' + f2(t.mk) + ' %\t' + rub(t.mkC), (t.shelfPending ? SHELF_PENDING : 'Итого') + '\t' + rub(t.total))
