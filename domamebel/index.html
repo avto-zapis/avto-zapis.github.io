@@ -152,15 +152,67 @@ tr.bad td { background:#FDECEA }
 details.parts summary { cursor:pointer; color:var(--acc-ink); font-size:12.5px; font-weight:700; margin-top:2px }
 details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(--sub) }
 @media print {
+  @page { size:A4 portrait; margin:12mm }
   body { background:#fff; font-size:12px }
   .demo-bar, .no-print, .del, .foot, .gear, .prices { display:none !important }
-  details.parts ul { display:block }
   .panel { padding:8px 0; border-radius:0 }
-  .grid { grid-template-columns:1fr }
-  .scheme { max-width:520px }
-  .tbl { overflow:visible } table { min-width:0 }
-  .cell input, .cell select { border:0; background:none; width:auto; padding:0; text-align:left; appearance:none }
+  .grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:16px; align-items:start }
+  .tot { display:block }
+  .tot .sumrows { gap:3px; font-size:12px }
+  .tot .big { margin-top:8px; font-size:28px }
+  .scheme { max-width:380px }
+  [aria-labelledby="h-sch"], [aria-labelledby="h-tot"] {
+    break-inside:avoid;
+    page-break-inside:avoid;
+  }
+  #h-tbl { break-after:avoid; page-break-after:avoid }
+  .tbl { overflow:visible }
+  .tbl table { display:table; width:100%; min-width:0; table-layout:fixed }
+  .tbl thead { display:table-header-group }
+  .tbl tbody { display:table-row-group }
+  .tbl tr {
+    display:table-row;
+    break-inside:avoid;
+    page-break-inside:avoid;
+  }
+  .tbl th, .tbl td {
+    display:table-cell;
+    padding:4px 5px;
+    border-bottom:1px solid var(--line);
+    vertical-align:top;
+  }
+  .tbl td[data-l]::before { content:none }
+  .tbl th:nth-child(1) { width:19% }
+  .tbl th:nth-child(2) { width:33% }
+  .tbl th:nth-child(3) { width:20% }
+  .tbl th:nth-child(4) { width:8% }
+  .tbl th:nth-child(5) { width:7% }
+  .tbl th:nth-child(6) { width:13% }
+  .tbl td.num { text-align:right }
+  .tbl td:nth-child(4) { text-align:left }
+  .tbl .pos, .tbl .drawer-slides { gap:2px 5px }
+  .tbl .drawer-slides { margin-top:2px }
+  .tbl td .sub, .tbl label, .tbl details.parts summary, .tbl details.parts ul { font-size:10px }
+  .tbl details.parts ul { display:block }
+  .tbl .cell input, .tbl .cell select {
+    border:0;
+    background:none;
+    max-width:100%;
+    padding:0;
+    text-align:left;
+    appearance:none;
+  }
+  .tbl .cell input { width:5ch }
+  .tbl .cell select { width:auto }
 }
+.local-fields{margin-top:10px}
+.local-fields[hidden]{display:none}
+.local-fields select,.local-fields .inp{min-width:0;width:100%}
+.sumrows[hidden]{display:none}
+.geometry-warning{color:#9F2119;font-weight:700;margin:0 0 12px}
+.acts button:disabled{opacity:.58;cursor:not-allowed}
+.opening-fields > :first-child{grid-column:1 / -1}
+#h-add ~ .local-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
 </style>
 </head>
 <body>
@@ -210,6 +262,15 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
           <div class="fld"><label for="aRod">Штанга</label><select id="aRod"><option value="round">Круглая (за пог. м)</option><option value="slide">Выдвижная (за шт.)</option></select></div>
           <div class="fld"><label for="aShelfGap">Промежуток для перегородки</label><select id="aShelfGap"></select></div>
         </div>
+        <div class="two local-fields opening-fields">
+          <div class="fld"><label for="aBay">Проём для ящика</label><select id="aBay"></select></div>
+          <div class="fld"><label for="aClearance">Зазор на сторону</label><div class="inp"><input id="aClearance" type="number" inputmode="numeric" min="0" step="1" value="0"><span>мм</span></div></div>
+          <div class="fld"><label for="aPostMode">Стойка</label><select id="aPostMode"><option value="full">На всю высоту</option><option value="partial">Частичная</option></select></div>
+        </div>
+        <div class="two local-fields" id="aPostFields" hidden>
+          <div class="fld"><label for="aPostY">Низ стойки от пола</label><div class="inp"><input id="aPostY" type="number" inputmode="numeric" min="0"><span>мм</span></div></div>
+          <div class="fld"><label for="aPostH">Высота стойки</label><div class="inp"><input id="aPostH" type="number" inputmode="numeric" min="1" placeholder="например, 800"><span>мм</span></div></div>
+        </div>
         <div class="adds">
           <button class="add" type="button" data-add="polka">+ Полка</button>
           <button class="add" type="button" data-add="stoyka">+ Стойка</button>
@@ -217,7 +278,7 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
           <button class="add" type="button" data-add="shtanga">+ Штанга</button>
           <button class="add" type="button" data-add="verticalShelf">+ Вертикальная перегородка</button>
         </div>
-        <p class="hint">Полка, ящик и штанга встают в выбранную секцию на указанную высоту (пусто = в свободное место). Стойка делит выбранную секцию пополам. Потом всё можно двигать на схеме или числами в таблице. Секцию можно выбрать и нажатием на схему.</p>
+        <p class="hint">Для соседних рядов выберите проём каждого ящика. Пустая высота от пола означает автоматическое размещение. Зазор вычитается с каждой стороны ящика.</p>
         <p class="hint">Выберите промежуток и добавьте нужное число перегородок. Тяните зелёные детали влево или вправо для настройки ширины, вверх или вниз для настройки высоты.</p>
         <p class="toast" id="toast" role="status"></p>
       </section>
@@ -245,6 +306,7 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     <div class="tot">
       <div>
         <h2 id="h-tot">Итог</h2>
+        <p class="geometry-warning" id="geometry-warning" role="status" hidden></p>
         <dl class="sumrows" id="sum"></dl>
         <p class="big" id="total"></p>
       </div>
@@ -269,7 +331,7 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
   var DH = Math.max(50, num(S.drawerHeight, 150))
   var NAMES = { side: 'Боковина', topbot: 'Крыша / дно', stoyka: 'Стойка', polka: 'Полка', verticalShelf: 'Вертикальная перегородка', yaschik: 'Ящик', shtanga: 'Штанга', back: 'Задняя стенка' }
   var SHELF_NO_SPACE = 'Нет места для перегородки'
-  var SHELF_PENDING = 'Итог без перегородок, для которых нет места'
+  var SHELF_PENDING = 'Смета недоступна'
   // ---------------- цены: исходные из SETTINGS, свои сохраняются в браузере
   var PF = [['ldsp', 'ЛДСП', '₽/м²'], ['hdf', 'ХДФ задняя стенка', '₽/м²'], ['wasteFactor', 'Обрезки ЛДСП, коэффициент', '×'], ['wasteFactorHdf', 'Обрезки ХДФ, коэффициент', '×'],
     ['rodRound', 'Штанга круглая', '₽/пог. м'], ['rodSlide', 'Штанга выдвижная', '₽/шт.'], ['drawerSlidesBasic', 'Направляющие без доводчика', '₽/компл.'], ['drawerSlidesSoft', 'Направляющие с доводчиком', '₽/компл.'], ['edge', 'Кромка', '₽/пог. м'], ['markup', 'Наценка', '%']]
@@ -299,16 +361,16 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     })
   }
   restoreBody()
-  var posts = []   // стойки: { id, x } x = отступ левой грани стойки от левого края шкафа
+  var posts = []   // полная стойка: { id, x }, частичная: { id, x, sec, y, h }
   var items = []   // полки, ящики, штанги: { id, t, sec, y (низ детали от пола), h (у ящика), d (глубина полки, null = как шкаф) }
   var verticalShelves = []   // { id, sec, x, y } — левая грань от края шкафа, нижняя грань от пола
 
   $('aDH').value = DH; $('tmm').textContent = T
 
   // ---------------- геометрия
-  function sorted() { return posts.slice().sort(function (a, b) { return a.x - b.x }) }
+  function sorted() { return posts.filter(function (p) { return p.h == null }).sort(function (a, b) { return a.x - b.x }) }
   function P() { return [0].concat(sorted().map(function (p) { return p.x }), [g.L - T]) }        // левые грани вертикальных плит
-  function nSec() { return posts.length + 1 }
+  function nSec() { return sorted().length + 1 }
   function secW(i) { var p = P(); return p[i + 1] - p[i] - T }
   function secX(i) { return P()[i] + T }                                                            // левый край пустоты секции
   function lo() { return T } function hi() { return g.H - T }                                      // пол = верх дна, потолок = низ крыши
@@ -318,7 +380,7 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
   function shelfSpans(sec) {
     if (secW(sec) < 2 * MIN + T) return []
     var start = lo(), spans = []
-    var obstacles = items.filter(function (it) { return it.sec === sec }).sort(function (a, b) { return a.y - b.y })
+    var obstacles = items.filter(function (it) { return it.sec === sec && !it.bay }).sort(function (a, b) { return a.y - b.y })
     obstacles.forEach(function (it) {
       var end = Math.min(it.y, hi())
       if (end > start) spans.push({ y: start, h: end - start })
@@ -390,22 +452,18 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     }).filter(function (slot) { return slot.from <= slot.to })
   }
 
-  function compartmentLines(rows) {
-    var bands = new Map(), lines = []
-    rows.forEach(function (r) {
-      var key = r.ref.sec + ':' + r.span.gap.y
-      if (!bands.has(key)) bands.set(key, [])
-      bands.get(key).push(r)
-    })
-    bands.forEach(function (partitions) {
-      var sec = partitions[0].ref.sec, gap = partitions[0].span.gap
-      var heights = Array.from(new Set(partitions.map(function (row) { return row.span.y }))).sort(function (a, b) { return a - b })
-      heights.forEach(function (y, i) {
-        var widths = compartmentWidths(sec, partitions.filter(function (row) { return row.span.y <= y }))
-        lines.push({ sec: sec, from: y, to: heights[i + 1] || gap.y + gap.h, widths: widths })
-      })
-    })
-    return lines.sort(function (a, b) { return a.sec - b.sec || a.from - b.from })
+  function compartmentLines(plates) {
+    var lines = []
+    for (var sec = 0; sec < nSec(); sec++) {
+      var group = plates.filter(function (p) { return p.sec === sec })
+      var levels = Array.from(new Set(group.flatMap(function (p) { return [p.y, p.top] }))).sort(function (a, b) { return a - b })
+      for (var i = 0; i + 1 < levels.length; i++) {
+        var from = levels[i], to = levels[i + 1]
+        var active = group.filter(function (p) { return p.y <= from && p.top >= to })
+        if (active.length) lines.push({ sec: sec, from: from, to: to, widths: baysBetween(sec, active).map(function (bay) { return bay.w }) })
+      }
+    }
+    return lines
   }
 
   function compartmentPosition(line) {
@@ -417,53 +475,171 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     return 'слева в секции ' + (row.span.x - secX(row.ref.sec)) + ' мм, от пола ' + row.span.y + ' мм'
   }
 
-  // ближайшее свободное место по высоте в секции: детали не залезают друг на друга и за габариты
-  function fitY(it, want, sec) {
-    var h = itemH(it), others = items.filter(function (o) { return o !== it && o.sec === sec }).map(function (o) { return [o.y, o.y + itemH(o)] }).sort(function (a, b) { return a[0] - b[0] })
-    var gaps = [], a = lo()
-    others.forEach(function (o) { if (o[0] > a) gaps.push([a, Math.min(o[0], hi())]); a = Math.max(a, o[1]) })   // свободное место только внутри габаритов
-    if (hi() > a) gaps.push([a, hi()])
-    var best = null, bd = Infinity
-    gaps.forEach(function (gp) {
-      if (gp[1] - gp[0] < h) return
-      var y = Math.min(Math.max(want, gp[0]), gp[1] - h), d = Math.abs(y - want)
-      if (d < bd) { bd = d; best = y }
+  function overlaps(a, b) {
+    return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h
+  }
+
+  function baysBetween(sec, plates) {
+    var full = sorted()
+    var left = full[sec - 1] ? full[sec - 1].id : 'left'
+    var right = full[sec] ? full[sec].id : 'right'
+    var edge = secX(sec), end = edge + secW(sec), bays = []
+    plates.slice().sort(function (a, b) { return a.x - b.x }).concat([{ id: right, x: end }]).forEach(function (p) {
+      bays.push({ key: left + '/' + p.id, x: edge, w: p.x - edge })
+      left = p.id
+      edge = p.x + T
     })
-    return best == null ? null : Math.round(best)
+    return bays
   }
-  function freeMid(it, sec) {   // середина самого большого свободного места
-    var h = itemH(it), others = items.filter(function (o) { return o !== it && o.sec === sec }).map(function (o) { return [o.y, o.y + itemH(o)] }).sort(function (a, b) { return a[0] - b[0] })
+
+  function localPlates(shelves) {
+    var plates = shelves.filter(function (r) { return r.span }).map(function (r) {
+      return { id: r.id, sec: r.ref.sec, x: r.span.x, y: r.span.y, h: r.span.h, top: r.span.y + r.span.h, w: T }
+    })
+    return plates.concat(posts.filter(function (p) { return p.h != null }).map(function (p) {
+      return { id: p.id, sec: p.sec, x: p.x, y: p.y, h: p.h, top: p.y + p.h, w: T }
+    }))
+  }
+
+  function openings(sec, y, h, plates) {
+    var local = plates.filter(function (p) { return p.sec === sec && p.y < y + h && y < p.top })
+    return baysBetween(sec, local.filter(function (p) { return p.y <= y && p.top >= y + h })).filter(function (bay) {
+      return bay.w >= MIN && !local.some(function (p) { return overlaps({ x: bay.x, w: bay.w, y: y, h: h }, p) })
+    })
+  }
+
+  function itemRect(it, plates) {
+    var h = itemH(it), y = it.y
+    if (it.sec < 0 || it.sec >= nSec() || secW(it.sec) < MIN || y < lo() || y + h > hi()) return null
+    var bay = it.bay ? openings(it.sec, y, h, plates).find(function (b) { return b.key === it.bay })
+      : { x: secX(it.sec), w: secW(it.sec) }
+    if (!bay) return null
+    var clearance = it.clearance || 0
+    var rect = { x: bay.x + clearance, w: bay.w - 2 * clearance, y: y, h: h }
+    if (rect.w <= 0 || (it.t === 'yaschik' && (rect.w <= 2 * T || g.D <= 2 * T))) return null
+    return rect
+  }
+
+  function geometry() {
+    var shelves = shelfRows(), plates = localPlates(shelves), invalid = new Set(), rects = new Map()
+    shelves.forEach(function (r) { if (!r.span) invalid.add(r.id) })
+    plates.forEach(function (p) {
+      var left = secX(p.sec), right = left + secW(p.sec)
+      if (p.y < lo() || p.h <= 0 || p.top > hi() || p.x - left < MIN || right - p.x - T < MIN) invalid.add(p.id)
+      plates.forEach(function (q) {
+        if (p.id === q.id || p.sec !== q.sec || p.y >= q.top || q.y >= p.top) return
+        var space = Math.max(p.x, q.x) - Math.min(p.x, q.x) - T
+        if (space < MIN) { invalid.add(p.id); invalid.add(q.id) }
+      })
+    })
+    sorted().forEach(function (p) {
+      var range = postRange(p)
+      if (p.x < range[0] || p.x > range[1]) invalid.add(p.id)
+    })
+    items.forEach(function (it) {
+      var rect = itemRect(it, plates)
+      if (!rect) { invalid.add(it.id); return }
+      rects.set(it.id, rect)
+      plates.forEach(function (p) {
+        if (overlaps(rect, p)) { invalid.add(it.id); invalid.add(p.id) }
+      })
+    })
+    items.forEach(function (it, i) {
+      var rect = rects.get(it.id)
+      if (!rect) return
+      if (it.bay && it.bay.split('/').some(function (id) { return invalid.has(+id) })) invalid.add(it.id)
+      items.slice(i + 1).forEach(function (other) {
+        var next = rects.get(other.id)
+        if (next && overlaps(rect, next)) { invalid.add(it.id); invalid.add(other.id) }
+      })
+    })
+    var postRects = new Map(plates.filter(function (p) {
+      return posts.some(function (post) { return post.id === p.id })
+    }).concat(sorted().map(function (post) {
+      return { id: post.id, x: post.x, y: lo(), w: T, h: hi() - lo(), top: hi() }
+    })).map(function (p) { return [p.id, p] }))
+    return { shelves: shelves, plates: plates, postRects: postRects, rects: rects, invalid: invalid }
+  }
+
+  function fitY(it, want, sec, bay = it.bay, plates = localPlates(shelfRows()), strict = false) {
+    var h = itemH(it), max = hi() - h
+    if (max < lo()) return null
+    var obstacles = items.filter(function (o) { return o !== it && o.sec === sec }).map(function (o) {
+      return itemRect(o, plates)
+    }).filter(Boolean).concat(plates.filter(function (p) {
+      return p.sec === sec && (strict || bay || posts.some(function (post) { return post.id === p.id }))
+    }))
+    var candidates = new Set([lo(), max])
+    if (want != null) candidates.add(Math.max(lo(), Math.min(max, want)))
+    obstacles.forEach(function (o) {
+      candidates.add(o.y - h); candidates.add(o.y + o.h)
+      candidates.add(o.y); candidates.add(o.y + o.h - h)
+    })
+    var valid = Array.from(candidates).filter(function (y) {
+      var rect = itemRect(Object.assign({}, it, { y: y, sec: sec, bay: bay }), plates)
+      return rect && !obstacles.some(function (o) { return overlaps(rect, o) })
+    }).sort(function (a, b) { return a - b })
+    if (!valid.length) return null
+    if (want == null && it.t === 'yaschik' && it.bay) return valid[0]
+    if (want == null) {
+      // Preserve the original largest-gap placement in an undivided section.
+      var target = bay ? null : legacyMid(it, sec)
+      want = target == null ? (lo() + max) / 2 : target
+      var rect = itemRect(Object.assign({}, it, { y: want, sec: sec, bay: bay }), plates)
+      if (rect && !obstacles.some(function (o) { return overlaps(rect, o) })) return Math.round(want)
+    }
+    return valid.reduce(function (best, y) { return Math.abs(y - want) < Math.abs(best - want) ? y : best })
+  }
+
+  function legacyMid(it, sec) {
+    var h = itemH(it), others = items.filter(function (o) { return o !== it && o.sec === sec }).sort(function (a, b) { return a.y - b.y })
     var a = lo(), big = null
-    others.concat([[hi(), hi()]]).forEach(function (o) { var e = Math.min(o[0], hi()); if (e - a >= h && (!big || e - a > big[1] - big[0])) big = [a, e]; a = Math.max(a, o[1]) })
-    if (!big) return null
-    return it.t === 'yaschik' ? big[0] : Math.round((big[0] + big[1] - h) / 2)
+    others.concat([{ y: hi() }]).forEach(function (o) {
+      var end = Math.min(o.y, hi())
+      if (end - a >= h && (!big || end - a > big[1] - big[0])) big = [a, end]
+      if (o.y !== hi()) a = Math.max(a, o.y + itemH(o))
+    })
+    return big ? (it.t === 'yaschik' ? big[0] : Math.round((big[0] + big[1] - h) / 2)) : null
   }
+
+  function tryChange(apply, undo, message, requiredId) {
+    var before = geometry().invalid
+    apply()
+    var after = geometry().invalid
+    if (!after.has(requiredId) && !Array.from(after).some(function (id) { return !before.has(id) })) return true
+    undo()
+    say(message || 'Детали пересекаются или выходят за допустимые размеры', true)
+    return false
+  }
+
+  function updateDetail(detail, fields, message, mustFit = false) {
+    var previous = {}
+    Object.keys(fields).forEach(function (key) { previous[key] = detail[key] })
+    return tryChange(function () { Object.assign(detail, fields) }, function () { Object.assign(detail, previous) }, message, mustFit ? detail.id : undefined)
+  }
+
   function postRange(p) {        // стойка не переходит соседей и оставляет секции не уже MIN
     var s = sorted(), i = s.indexOf(p), left = i ? s[i - 1].x : 0, right = i < s.length - 1 ? s[i + 1].x : g.L - T
     return [left + T + MIN, right - T - MIN]
   }
   function clampPost(p, want) { var r = postRange(p); return Math.round(Math.min(Math.max(want, r[0]), r[1])) }
-  function bad(it) { return it.sec >= nSec() || it.y < lo() || it.y + itemH(it) > hi() || items.some(function (o) { return o !== it && o.sec === it.sec && o.y < it.y + itemH(it) && it.y < o.y + itemH(o) }) }
-  function settle() {          // после смены габаритов: всё возвращаем в рамки
-    sorted().forEach(function (p) { var r = postRange(p); if (r[0] <= r[1]) p.x = clampPost(p, p.x) })
-    items.slice().sort(function (a, b) { return a.y - b.y }).forEach(function (it) { var y = fitY(it, it.y, it.sec); if (y != null) it.y = y })
-  }
-
-  // ---------------- строки таблицы и цены
-  function rowsAll() {
-    var s = sorted()
-    return corpus.concat(back ? [{ id: 'back', t: 'back', q: 1 }] : [], s.map(function (p) { return { id: p.id, t: 'stoyka', q: 1, ref: p } }),
-      items.slice().sort(function (a, b) { return a.sec - b.sec || a.y - b.y }).map(function (it) { return { id: it.id, t: it.t, q: 1, ref: it } }), shelfRows())
+  function rowsAll(model) {
+    var rows = corpus.concat(back ? [{ id: 'back', t: 'back', q: 1 }] : [],
+      sorted().concat(posts.filter(function (p) { return p.h != null })).map(function (p) { return { id: p.id, t: 'stoyka', q: 1, ref: p, rect: model.postRects.get(p.id) } }),
+      items.slice().sort(function (a, b) { return a.sec - b.sec || a.y - b.y }).map(function (it) {
+        return { id: it.id, t: it.t, q: 1, ref: it, rect: model.rects.get(it.id) }
+      }), model.shelves)
+    return rows.map(function (r) { return Object.assign({}, r, { invalid: model.invalid.has(r.id) }) })
   }
   function size(r) {           // [ширина/высота, глубина] для плит, [ширина, высота] у ящика, [длина] у штанги
     if (r.t === 'side') return [g.H, g.D]
     if (r.t === 'topbot') return [g.L - 2 * T, g.D]
     if (r.t === 'back') return [g.L, g.H]
-    if (r.t === 'stoyka') return [g.H - 2 * T, g.D]
-    if (r.t === 'polka') return [secW(r.ref.sec), depth(r.ref)]
+    if (r.t === 'stoyka') return [r.rect.h, g.D]
+    if (r.t === 'polka') return r.rect ? [r.rect.w, depth(r.ref)] : []
     if (r.t === 'verticalShelf') return r.span ? [r.span.h, g.D] : []
-    if (r.t === 'yaschik') return [secW(r.ref.sec), r.ref.h]
-    return [secW(r.ref.sec)]
+    if (r.t === 'yaschik') return r.rect ? [r.rect.w, r.rect.h] : []
+    return r.rect ? [r.rect.w] : []
   }
   // короб ящика из ЛДСП: 2 боковины (глубина × высота), перед и зад между боковинами, дно внутри короба; фасад не считаем
   function box(w, h) {
@@ -475,7 +651,7 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
   var PANEL = { side: 1, topbot: 1, stoyka: 1, polka: 1, verticalShelf: 1 }
   function line(r) {           // ldsp/hdf = площадь без обрезков, edge = м кромки, piece = штучное
     var s = size(r), q = r.q
-    if (r.t === 'verticalShelf' && !r.span) return { ldsp: 0, hdf: 0, edge: 0, piece: 0 }
+    if (r.invalid) return { ldsp: 0, hdf: 0, edge: 0, piece: 0 }
     if (PANEL[r.t]) return { ldsp: s[0] * s[1] / 1e6 * q, hdf: 0, edge: s[0] / 1000 * q, piece: 0 }
     if (r.t === 'back') return { ldsp: 0, hdf: s[0] * s[1] / 1e6, edge: 0, piece: 0 }
     if (r.t === 'yaschik') { var a = 0; box(s[0], s[1]).forEach(function (b) { a += b[1] * b[2] / 1e6 * b[3] }); return { ldsp: a * q, hdf: 0, edge: 0, piece: q * slideCost(r.ref) } }
@@ -483,60 +659,127 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     return { ldsp: 0, hdf: 0, edge: 0, piece: round ? s[0] / 1000 * PR.rodRound * q : PR.rodSlide * q, len: s[0] / 1000 * q }
   }
   function rowCost(l) { return l.ldsp * WL() * PR.ldsp + l.hdf * WH() * PR.hdf + l.edge * PR.edge + l.piece }   // обрезки раскладываются по строкам: сумма строк = итог до наценки
-  function totals() {
+  function totals(model = geometry()) {
     var t = { ldsp: 0, hdf: 0, edge: 0, nd: 0, slides: 0, rodC: 0, nRound: 0, lenRound: 0, nSlide: 0, shelfPending: false }
-    rowsAll().forEach(function (r) {
+    rowsAll(model).forEach(function (r) {
+      if (r.invalid) { t.shelfPending = true; return }
       var l = line(r); t.ldsp += l.ldsp; t.hdf += l.hdf; t.edge += l.edge
-      if (r.t === 'verticalShelf' && !r.span) t.shelfPending = true
       if (r.t === 'yaschik') { t.nd += r.ref.slideQty * r.q; t.slides += l.piece }
       if (r.t === 'shtanga') { t.rodC += l.piece; if (r.ref.rod === 'slide') t.nSlide++; else { t.nRound++; t.lenRound += l.len } }
     })
     t.ldspW = t.ldsp * WL(); t.ldspC = t.ldspW * PR.ldsp; t.hdfW = t.hdf * WH(); t.hdfC = t.hdfW * PR.hdf; t.edgeC = t.edge * PR.edge
-    t.base = t.ldspC + t.hdfC + t.edgeC + t.slides + t.rodC; t.mk = PR.markup; t.mkC = t.base * t.mk / 100; t.total = t.base + t.mkC
+    t.base = t.ldspC + t.hdfC + t.edgeC + t.slides + t.rodC; t.mk = PR.markup; t.mkC = t.base * t.mk / 100; t.total = t.shelfPending ? null : t.base + t.mkC
     return t
   }
 
   // ---------------- таблица
   function secOpts(sel) { var h = ''; for (var i = 0; i < nSec(); i++) h += '<option value="' + i + '"' + (i === sel ? ' selected' : '') + '>' + (i + 1) + '</option>'; return h }
   var f2 = function (x) { return String(x).replace('.', ',') }
-  function renderRows() {
+  function drawerDestinations(it, model) {
+    var destinations = []
+    for (var sec = 0; sec < nSec(); sec++) {
+      var local = model.plates.filter(function (p) { return p.sec === sec })
+      var levels = [it.y, lo(), hi() - it.h]
+      local.forEach(function (p) { levels.push(p.y, p.top, p.y - it.h, p.top - it.h) })
+      var choices = new Map()
+      levels.forEach(function (level) {
+        if (level < lo() || level + it.h > hi()) return
+        openings(sec, level, it.h, model.plates).forEach(function (bay) {
+          var localBay = bay.w !== secW(sec)
+          if (bay.key.split('/').some(function (id) { return model.invalid.has(+id) })) return
+          var key = localBay ? bay.key : null
+          if (choices.has(key) || bay.w - 2 * (it.clearance || 0) <= 2 * T) return
+          var y = fitY(it, it.y, sec, key, model.plates, true)
+          if (y != null) choices.set(key, { sec: sec, key: key, y: y, x: bay.x, w: bay.w })
+        })
+      })
+      var bays = Array.from(choices.values()).sort(function (a, b) { return a.x - b.x || a.y - b.y })
+      var number = 0
+      bays.forEach(function (bay) {
+        bay.value = bay.sec + ':' + (bay.key || '')
+        var place = bay.key ? 'Проём ' + (++number) : 'Вся секция'
+        bay.label = (nSec() > 1 ? 'Секция ' + (bay.sec + 1) + ' · ' : '') + place + ' · ' + bay.w + ' мм' +
+          (bay.y !== it.y ? ' · низ ' + bay.y + ' мм' : '')
+        destinations.push(bay)
+      })
+    }
+    return destinations
+  }
+
+  function moveDrawer(it, pick) {
+    var destination = drawerDestinations(it, geometry()).filter(pick).sort(function (a, b) {
+      return Math.abs(a.y - it.y) - Math.abs(b.y - it.y)
+    })[0]
+    if (!destination) return say('В выбранном проёме нет места для ящика', true)
+    if (updateDetail(it, { sec: destination.sec, bay: destination.key, y: destination.y }, 'Ящик пересекает другую деталь или не помещается в проём', true)) {
+      say('Ящик перемещён в секцию ' + (destination.sec + 1) + ', низ ' + destination.y + ' мм')
+    }
+  }
+
+  function renderRows(model) {
     var h = ''
-    rowsAll().forEach(function (r) {
+    rowsAll(model).forEach(function (r) {
       var s = size(r), l = line(r), it = r.ref, nm = NAMES[r.t], pos = '', dim = '', sub = ''
       if (r.t === 'stoyka') pos = '<div class="pos cell"><label for="x' + r.id + '">X</label><input id="x' + r.id + '" data-k="x" inputmode="numeric" value="' + it.x + '"><span class="sub">от левого края</span></div>'
-      else if (r.t === 'verticalShelf') pos = '<span class="sub">' + shelfPosition(r) + '</span>'
-      else if (it) pos = '<div class="pos cell"><label for="s' + r.id + '">секция</label><select id="s' + r.id + '" data-k="sec">' + secOpts(it.sec) + '</select><label for="y' + r.id + '">h</label><input id="y' + r.id + '" data-k="y" inputmode="numeric" value="' + it.y + '"></div>'
-      else pos = '<span class="sub">' + (r.t === 'back' ? 'ХДФ' : 'корпус') + '</span>'
-      if (r.t === 'polka') dim = '<span class="dim cell">' + s[0] + '<b>×</b><input aria-label="Полка: глубина, мм" data-k="d" inputmode="numeric" value="' + s[1] + '"></span>'
+      if (r.t === 'stoyka' && it.h != null) {
+        nm = 'Частичная стойка'
+        pos += '<div class="pos cell"><label for="postY' + r.id + '">Низ</label><input id="postY' + r.id + '" aria-label="Низ стойки от пола, мм" data-k="postY" inputmode="numeric" value="' + it.y +
+          '"><label for="postH' + r.id + '">Высота</label><input id="postH' + r.id + '" aria-label="Высота стойки, мм" data-k="postH" inputmode="numeric" value="' + it.h + '"></div>'
+      }
+      if (r.t === 'verticalShelf') pos = '<span class="sub">' + shelfPosition(r) + '</span>'
+      else if (it && r.t !== 'stoyka') pos = '<div class="pos cell"><label for="s' + r.id + '">секция</label><select id="s' + r.id + '" data-k="sec">' + secOpts(it.sec) + '</select><label for="y' + r.id + '">h</label><input id="y' + r.id + '" data-k="y" inputmode="numeric" value="' + it.y + '"></div>'
+      else if (!it) pos = '<span class="sub">' + (r.t === 'back' ? 'ХДФ' : 'корпус') + '</span>'
+      if (r.t === 'polka') dim = '<span class="dim cell">' + (s[0] ?? '—') + '<b>×</b><input aria-label="Полка: глубина, мм" data-k="d" inputmode="numeric" value="' + s[1] + '"></span>'
       else if (r.t === 'verticalShelf') dim = r.span ? '<span class="dim">' + s[0] + '<b>×</b>' + s[1] + '<span class="sub">высота × глубина</span></span>' : '—'
       else if (r.t === 'yaschik') {
-        dim = '<span class="dim cell">' + s[0] + '<b>×</b><input aria-label="Ящик: высота короба, мм" data-k="h" inputmode="numeric" value="' + s[1] + '"><span class="sub">ширина × высота короба</span></span>'
+        dim = '<span class="dim cell">' + (s[0] ?? '—') + '<b>×</b><input aria-label="Ящик: высота короба, мм" data-k="h" inputmode="numeric" value="' + it.h + '"><span class="sub">ширина × высота короба</span></span>'
+        pos += '<div class="pos cell"><label for="clear' + r.id + '">Зазор, мм</label><input id="clear' + r.id + '" aria-label="Зазор с каждой стороны ящика, мм" data-k="clearance" inputmode="numeric" value="' + (it.clearance || 0) + '"></div>'
+        var available = drawerDestinations(it, model), selected = it.sec + ':' + (it.bay || '')
+        if (it.bay || nSec() > 1 || available.some(function (bay) { return bay.key })) {
+          var options = available.some(function (bay) { return bay.value === selected })
+            ? '' : '<option selected disabled>Текущий проём недоступен</option>'
+          available.forEach(function (bay) {
+            options += '<option value="' + bay.value + '"' + (bay.value === selected ? ' selected' : '') + '>' + bay.label + '</option>'
+          })
+          pos += '<div class="pos cell"><select aria-label="Проём ящика" data-k="bay"' + (available.length ? '' : ' disabled') + '>' + options + '</select></div>'
+        }
+        if (it.bay && r.rect) pos += '<span class="sub">Ящик от левого края ' + r.rect.x + ' мм</span>'
         pos += '<div class="drawer-slides cell"><select aria-label="Тип направляющих" data-k="slidesType">' +
           Object.keys(slideNames).map(function (type) { return '<option value="' + type + '"' + (it.slidesType === type ? ' selected' : '') + '>' + slideNames[type] + '</option>' }).join('') +
           '</select><label for="slides' + r.id + '">Компл.</label><input id="slides' + r.id + '" aria-label="Количество комплектов направляющих" type="number" min="0" step="1" inputmode="numeric" data-k="slideQty" value="' + it.slideQty + '"></div>'
-        sub = '<details class="parts"><summary>короб ' + m2f(l.ldsp) + ' м² + направляющие ' + rub(l.piece) + '</summary><ul>' + box(s[0], s[1]).map(function (b) { return '<li>' + b[0] + ': ' + b[1] + ' × ' + b[2] + ' × ' + b[3] + ' шт. = ' + m2f(b[1] * b[2] / 1e6 * b[3]) + ' м²</li>' }).join('') + '</ul></details>'
+        if (!r.invalid) sub = '<details class="parts"><summary>короб ' + m2f(l.ldsp) + ' м² + направляющие ' + rub(l.piece) + '</summary><ul>' + box(s[0], s[1]).map(function (b) { return '<li>' + b[0] + ': ' + b[1] + ' × ' + b[2] + ' × ' + b[3] + ' шт. = ' + m2f(b[1] * b[2] / 1e6 * b[3]) + ' м²</li>' }).join('') + '</ul></details>'
       }
-      else if (r.t === 'shtanga') dim = '<span class="dim">' + s[0] + '<span class="sub">длина</span></span>'
+      else if (r.t === 'shtanga') dim = '<span class="dim">' + (s[0] ?? '—') + '<span class="sub">длина</span></span>'
       else dim = '<span class="dim">' + s[0] + '<b>×</b>' + s[1] + '</span>'
       if (r.t === 'shtanga') pos += '<div class="cell" style="margin-top:4px"><select aria-label="Вид штанги" data-k="rod"><option value="round"' + (it.rod !== 'slide' ? ' selected' : '') + '>круглая, за пог. м</option><option value="slide"' + (it.rod === 'slide' ? ' selected' : '') + '>выдвижная, за шт.</option></select></div>'
       var q = it || r.t === 'back' ? '1' : '<span class="cell"><input aria-label="' + nm + ': количество" data-k="q" inputmode="numeric" value="' + r.q + '" style="width:56px"></span>'
       var area = l.ldsp + l.hdf
-      var invalid = r.t === 'verticalShelf' ? !r.span : it && it.sec !== undefined && bad(it)
+      var invalid = r.invalid
+      if (invalid) sub += '<span class="sub">' + (r.t === 'verticalShelf' ? 'Проверьте место для перегородки' : 'Деталь вне доступного проёма или пересекает другую') + '</span>'
       h += '<tr data-id="' + r.id + '" class="' + (invalid ? 'bad' : '') + (hl === r.id ? ' hl' : '') + '"><td><span class="nm">' + nm + '</span>' + (it && it.sec !== undefined ? '<span class="sub">секция ' + (it.sec + 1) + '</span>' : '') + sub + '</td>' +
         '<td data-l="Положение">' + pos + '</td><td data-l="Размер, мм">' + dim + '</td><td data-l="Кол-во">' + q + '</td>' +
-        '<td class="num" data-l="м²">' + (area ? m2f(area) : '—') + '</td><td class="num" data-l="Цена">' + (r.t === 'verticalShelf' && !r.span ? '—' : rub(rowCost(l))) + '</td>' +
+        '<td class="num" data-l="м²">' + (area ? m2f(area) : '—') + '</td><td class="num" data-l="Цена">' + (r.invalid ? '—' : rub(rowCost(l))) + '</td>' +
         '<td class="no-print">' + (r.t === 'back' ? '' : '<button class="del" type="button" aria-label="Удалить: ' + nm + '">×</button>') + '</td></tr>'
     })
     $('rows').innerHTML = h || '<tr><td colspan="7" class="empty">Деталей нет.</td></tr>'
   }
-  function renderTotals() {
-    var t = totals()
+  function renderTotals(model) {
+    var t = totals(model)
     var list = [['Площадь ЛДСП (детали и короба ящиков)', m2f(t.ldsp) + ' м²'], ['С учётом обрезков ×' + f2(WL()), m2f(t.ldspW) + ' м²', 'key'], ['ЛДСП по ' + rub(PR.ldsp) + '/м²', rub(t.ldspC)]]
     if (back) list.push(['ХДФ задняя стенка ' + m2f(t.hdf) + ' м² ×' + f2(WH()) + ' = ' + m2f(t.hdfW) + ' м²', rub(t.hdfC)])
     list.push(['Кромка, ' + m2f(t.edge) + ' м', rub(t.edgeC)], ['Направляющие, комплектов ' + t.nd, rub(t.slides)],
       ['Штанги: круглых ' + t.nRound + ' (' + f2(t.lenRound.toFixed(3)) + ' м), выдвижных ' + t.nSlide, rub(t.rodC)], ['Наценка ' + f2(t.mk) + ' %', rub(t.mkC)])
     $('sum').innerHTML = list.map(function (x) { return '<div' + (x[2] ? ' class="key"' : '') + '><dt>' + esc(x[0]) + '</dt><dd>' + x[1] + '</dd></div>' }).join('')
-    $('total').textContent = (t.shelfPending ? SHELF_PENDING + ' · ' : 'Итого ') + rub(t.total)
+    var blocked = t.shelfPending, warning = $('geometry-warning')
+    warning.hidden = !blocked
+    warning.textContent = blocked ? 'Проверьте выделенные детали. Увеличьте габариты или исправьте положение деталей, чтобы получить смету.' : ''
+    $('sum').hidden = blocked
+    $('total').textContent = blocked ? SHELF_PENDING : 'Итого ' + rub(t.total)
+    ;['copy', 'print'].forEach(function (id) {
+      $(id).disabled = blocked
+      if (blocked) $(id).setAttribute('aria-describedby', 'geometry-warning')
+      else $(id).removeAttribute('aria-describedby')
+    })
     $('mkv').textContent = f2(PR.markup) + ' % (меняется в «Цены»)'
   }
   function renderSecSelect() {
@@ -570,7 +813,7 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     target.setAttribute('x', x); target.setAttribute('y', y)
     target.setAttribute('width', width); target.setAttribute('height', height)
   }
-  function scheme(drag) {
+  function scheme(drag, model = geometry()) {
     geo()
     var hasSide = corpus.some(function (c) { return c.t === 'side' && c.q > 0 }), hasTB = corpus.some(function (c) { return c.t === 'topbot' && c.q > 0 })
     var s = '<rect width="700" height="560" fill="#F5F3F8"/>', w = g.L * K, t = Math.max(2, T * K)
@@ -579,26 +822,42 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     for (var i = 0; i < nSec(); i++) s += '<rect class="sec" data-sec="' + i + '" x="' + sx(secX(i)) + '" y="' + sy(hi()) + '" width="' + Math.max(1, secW(i) * K) + '" height="' + ((hi() - lo()) * K) + '" fill="' + (i === sel ? '#EFE9FB' : 'transparent') + '"/>'
     var selectedGap = shelfSpans(sel).find(function (gap) { return String(gap.y) === $('aShelfGap').value })
     if (selectedGap && selectedGap.h < hi() - lo()) s += '<rect class="no-print" pointer-events="none" x="' + sx(secX(sel)) + '" y="' + sy(selectedGap.y + selectedGap.h) + '" width="' + (secW(sel) * K) + '" height="' + (selectedGap.h * K) + '" fill="#E2D9F6"/>'
+    var chosen = $('aBay').selectedOptions[0]
+    if (chosen && chosen.value && !drag) {
+      var bayHeight = Math.max(50, Math.round(num($('aDH').value, DH)))
+      s += '<rect class="no-print" pointer-events="none" x="' + sx(+chosen.dataset.x) + '" y="' + sy(+chosen.dataset.y + bayHeight) +
+        '" width="' + (+chosen.dataset.width * K) + '" height="' + (bayHeight * K) + '" fill="#D7CCF3"/>'
+    }
     if (hasSide) s += '<rect x="' + sx(0) + '" y="' + Y0 + '" width="' + t + '" height="' + (g.H * K) + '" fill="#B9A88F"/><rect x="' + sx(g.L - T) + '" y="' + Y0 + '" width="' + t + '" height="' + (g.H * K) + '" fill="#B9A88F"/>'
     if (hasTB) s += '<rect x="' + sx(T) + '" y="' + sy(g.H) + '" width="' + ((g.L - 2 * T) * K) + '" height="' + t + '" fill="#B9A88F"/><rect x="' + sx(T) + '" y="' + sy(T) + '" width="' + ((g.L - 2 * T) * K) + '" height="' + t + '" fill="#B9A88F"/>'
     items.forEach(function (it) {
-      var x = sx(secX(it.sec)), ww = Math.max(1, secW(it.sec) * K), y = sy(it.y + itemH(it)), hh = itemH(it) * K, b = bad(it), on = hl === it.id
+      var rect = model.rects.get(it.id)
+      if (!rect) return
+      var x = sx(rect.x), ww = rect.w * K, y = sy(rect.y + rect.h), hh = rect.h * K, b = model.invalid.has(it.id), on = hl === it.id
       if (it.t === 'polka') s += '<rect x="' + x + '" y="' + y + '" width="' + ww + '" height="' + Math.max(3, hh) + '" fill="' + (b ? '#B42318' : '#5B43B5') + '"' + (on ? ' stroke="#24212B" stroke-width="1.5"' : '') + '/>'
-      if (it.t === 'yaschik') s += '<rect x="' + (x + 1.5) + '" y="' + (y + 1) + '" width="' + (ww - 3) + '" height="' + Math.max(4, hh - 2) + '" rx="2" fill="' + (b ? '#F6C9C4' : '#D9C9AE') + '" stroke="' + (on ? '#24212B' : '#9C8E78') + '" stroke-width="' + (on ? 1.8 : 1) + '"/><rect x="' + (x + ww / 2 - 9) + '" y="' + (y + hh / 2 - 1.5) + '" width="18" height="3" rx="1.5" fill="#9C8E78"/>'
+      if (it.t === 'yaschik') s += '<rect data-drawer="' + it.id + '" x="' + x + '" y="' + y + '" width="' + ww + '" height="' + hh + '" rx="2" fill="' + (b ? '#F6C9C4' : '#D9C9AE') + '" stroke="' + (on ? '#24212B' : '#9C8E78') + '" stroke-width="' + (on ? 1.8 : 1) + '"/><rect x="' + (x + ww / 2 - Math.min(9, ww / 4)) + '" y="' + (y + hh / 2 - 1.5) + '" width="' + Math.min(18, ww / 2) + '" height="3" rx="1.5" fill="#9C8E78"/>'
       if (it.t === 'shtanga') s += '<rect x="' + x + '" y="' + (y + hh / 2 - 2) + '" width="' + ww + '" height="4" rx="2" fill="' + (b ? '#B42318' : '#4A4652') + '"/><path d="M' + (x + 6) + ' ' + (y + hh / 2) + 'v' + (-hh / 2 + 2) + 'M' + (x + ww - 6) + ' ' + (y + hh / 2) + 'v' + (-hh / 2 + 2) + '" stroke="#4A4652" stroke-width="2"/>'
       s += '<rect data-drag="v" data-id="' + it.id + '" x="' + x + '" y="' + (y + hh / 2 - Math.max(11, hh / 2)) + '" width="' + ww + '" height="' + Math.max(22, hh) + '" fill="transparent"/>'
     })
-    var placedShelves = shelfRows().filter(function (r) { return r.span })
+    var placedShelves = model.shelves.filter(function (r) { return r.span })
     placedShelves.forEach(function (r) {
       var sec = r.ref.sec, center = sx(r.span.x + T / 2)
       var top = sy(r.span.y + r.span.h), height = r.span.h * K
       var targetW = Math.min((MIN + T) * K, 54), drawnW = Math.min(t, targetW)
       var targetH = Math.min(r.span.gap.h * K, Math.max(42, height))
-      s += '<rect data-vertical-shelf="' + r.id + '" x="' + (center - drawnW / 2) + '" y="' + top + '" width="' + drawnW + '" height="' + height + '" fill="#086B60"/>'
+      s += '<rect data-vertical-shelf="' + r.id + '" x="' + (center - drawnW / 2) + '" y="' + top + '" width="' + drawnW + '" height="' + height + '" fill="' + (model.invalid.has(r.id) ? "#B42318" : "#086B60") + '"/>'
       if (hl === r.id) s += '<circle class="no-print" pointer-events="none" cx="' + center + '" cy="' + (top + height / 2) + '" r="6" fill="#086B60" stroke="#fff" stroke-width="1.5"/>'
       shelfTarget(r.id, center - targetW / 2, top, targetW, targetH)
     })
-    var lines = compartmentLines(placedShelves), summary = $('shelf-layout')
+    var missing = model.shelves.filter(function (r) { return !r.span })
+    missing.forEach(function (r) {
+      var center = sx(Math.min(g.L - T, Math.max(T, r.ref.x + T / 2)))
+      var bottom = Math.min(hi() - 1, Math.max(lo(), r.ref.y))
+      var y = sy(bottom), top = Math.max(Y0, y - 28)
+      s += '<line data-unplaced-shelf="' + r.id + '" x1="' + center + '" x2="' + center + '" y1="' + y + '" y2="' + top +
+        '" stroke="#B42318" stroke-width="4" stroke-dasharray="4 3"><title>Перегородка не помещается</title></line>'
+    })
+    var lines = model.invalid.size ? [] : compartmentLines(model.plates), summary = $('shelf-layout')
     summary.hidden = !lines.length
     summary.innerHTML = lines.length ? '<strong>Ширина отделений слева направо</strong>' + lines.map(function (line) {
       return '<p>' + compartmentPosition(line) + ': ' + line.widths.join(' / ') + ' мм</p>'
@@ -613,13 +872,14 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     Array.from($('shelf-targets').children).forEach(function (target) {
       if (!placedShelves.some(function (r) { return r.id === +target.dataset.id })) target.remove()
     })
-    sorted().forEach(function (p) {
-      var x = sx(p.x), on = hl === p.id
-      s += '<rect x="' + x + '" y="' + sy(hi()) + '" width="' + t + '" height="' + ((hi() - lo()) * K) + '" fill="' + (on ? '#24212B' : '#8C7A60') + '"/>'
-      s += '<rect data-drag="h" data-id="' + p.id + '" x="' + (x + t / 2 - 12) + '" y="' + sy(hi()) + '" width="24" height="' + ((hi() - lo()) * K) + '" fill="transparent"/>'
+    posts.forEach(function (p) {
+      var rect = model.postRects.get(p.id), height = rect.h * K
+      var x = sx(rect.x), top = rect.top, on = hl === p.id
+      s += '<rect data-post="' + p.id + '" x="' + x + '" y="' + sy(top) + '" width="' + (rect.w * K) + '" height="' + height + '" fill="' + (model.invalid.has(p.id) ? '#B42318' : on ? '#24212B' : '#8C7A60') + '"/>'
+      s += '<rect data-drag="h" data-id="' + p.id + '" x="' + (x + t / 2 - 12) + '" y="' + sy(top) + '" width="24" height="' + height + '" fill="transparent"/>'
     })
     // ширины секций под шкафом
-    for (i = 0; i < nSec(); i++) s += '<text x="' + sx(secX(i) + secW(i) / 2) + '" y="' + (sy(0) + 16) + '" text-anchor="middle" font-family="Manrope,sans-serif" font-size="12" font-weight="700" fill="#655F70">' + secW(i) + '</text>'
+    for (i = 0; i < nSec(); i++) if (secW(i) >= MIN) s += '<text x="' + sx(secX(i) + secW(i) / 2) + '" y="' + (sy(0) + 16) + '" text-anchor="middle" font-family="Manrope,sans-serif" font-size="12" font-weight="700" fill="#655F70">' + secW(i) + '</text>'
     s += '<text x="' + (X0 + w / 2) + '" y="' + (sy(0) + 32) + '" text-anchor="middle" font-family="Manrope,sans-serif" font-size="12.5" font-weight="800" fill="#24212B">' + g.L + ' мм</text>'
     s += '<text x="' + (X0 - 12) + '" y="' + (Y0 + g.H * K / 2) + '" text-anchor="middle" font-family="Manrope,sans-serif" font-size="12.5" font-weight="800" fill="#24212B" transform="rotate(-90 ' + (X0 - 12) + ' ' + (Y0 + g.H * K / 2) + ')">' + g.H + ' мм</text>'
     if (drag) s += tip(drag)
@@ -630,7 +890,8 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     var txt, x, y
     if (d.post) {
       var s = sorted(), i = s.indexOf(d.post)
-      txt = 'X ' + d.post.x + ' мм · слева ' + secW(i) + ' · справа ' + secW(i + 1); x = sx(d.post.x); y = sy(hi()) + 24
+      txt = d.post.h == null ? 'X ' + d.post.x + ' мм · слева ' + secW(i) + ' · справа ' + secW(i + 1) : 'X ' + d.post.x + ' мм · высота ' + d.post.h + ' мм'
+      x = sx(d.post.x); y = sy(d.post.h == null ? hi() : d.post.y + d.post.h) + 24
     } else if (d.shelf) {
       var row = shelfRows().find(function (r) { return r.id === d.shelf.id })
       if (!row || !row.span) return ''
@@ -651,7 +912,8 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
 
   function all() {
     $('restore-body').disabled = corpus.filter(function (c) { return c.q > 0 }).length === 2
-    renderSecSelect(); renderShelfGaps(); renderRows(); renderTotals(); scheme()
+    var model = geometry()
+    renderSecSelect(); renderShelfGaps(); renderBayOptions(model); renderRows(model); renderTotals(model); scheme(null, model)
   }
   function say(m, isBad) { var e = $('toast'); e.textContent = m; e.classList.toggle('bad', !!isBad); clearTimeout(say.t); say.t = setTimeout(function () { e.textContent = '' }, 3500) }
   function byId(id) { return posts.filter(function (p) { return p.id === id })[0] || items.filter(function (o) { return o.id === id })[0] || corpus.filter(function (c) { return c.id === id })[0] }
@@ -659,13 +921,42 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
   // ---------------- добавление
   function selectedSection() { return Math.min(+$('aSec').value || 0, nSec() - 1) }
 
+  function renderBayOptions(model = geometry()) {
+    var select = $('aBay'), previous = select.value, sec = selectedSection()
+    var h = Math.max(50, Math.round(num($('aDH').value, DH)))
+    var want = num($('aY').value, null)
+    var clearance = Math.max(0, Math.round(num($('aClearance').value, 0)))
+    var local = model.plates.filter(function (p) { return p.sec === sec && !model.invalid.has(p.id) })
+    var levels = want == null ? Array.from(new Set(local.flatMap(function (p) { return [p.y, p.top] }))) : [Math.round(want)]
+    var choices = new Map()
+    levels.sort(function (a, b) { return a - b }).forEach(function (y) {
+      if (y < lo() || y + h > hi()) return
+      var bays = openings(sec, y, h, local)
+      bays.forEach(function (bay, index) {
+        var sides = bay.key.split('/')
+        if (!sides.some(function (id) { return local.some(function (p) { return String(p.id) === id }) })) return
+        if (!choices.has(bay.key)) choices.set(bay.key, { bay: bay, index: index, y: y })
+      })
+    })
+    select.replaceChildren(new Option(choices.size && want == null ? 'Вся секция, где свободно' : 'Вся секция', ''))
+    choices.forEach(function (choice, key) {
+      var width = choice.bay.w - 2 * clearance
+      var option = new Option('Проём ' + (choice.index + 1) + ' · ' + (clearance ? 'ящик ' + Math.max(0, width) : choice.bay.w) + ' мм · от ' + choice.y + ' мм', key)
+      option.disabled = width <= 2 * T
+      option.dataset.x = choice.bay.x; option.dataset.width = choice.bay.w; option.dataset.y = choice.y
+      select.add(option)
+    })
+    if (choices.has(previous) && Array.from(select.options).some(function (o) { return o.value === previous && !o.disabled })) select.value = previous
+  }
+
   function addVerticalShelf() {
     var sec = selectedSection(), gap = shelfSpans(sec).find(function (g) { return String(g.y) === $('aShelfGap').value })
     var slots = gap ? shelfSlots(sec, gap, shelfRows()) : []
     var slot = slots.sort(function (a, b) { return b.width - a.width })[0]
     if (!slot) return say(SHELF_NO_SPACE + ' в выбранном промежутке', true)
     var shelf = { id: ++nid, sec: sec, x: Math.round((slot.from + slot.to) / 2), y: gap.y }
-    verticalShelves.push(shelf); hl = shelf.id; all()
+    if (!tryChange(function () { verticalShelves.push(shelf) }, function () { verticalShelves.pop() }, 'Перегородка пересекает деталь или сужает проём')) return
+    hl = shelf.id; all()
     say('Перегородка добавлена в секцию ' + (sec + 1))
   }
 
@@ -713,21 +1004,62 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     b.addEventListener('click', function () {
       var t = b.dataset.add, sec = selectedSection()
       if (t === 'stoyka') {
+        if ($('aPostMode').value === 'partial') {
+          var y = Math.round(num($('aPostY').value, lo())), h = Math.round(num($('aPostH').value, 0))
+          if (h < 1 || y < lo() || y + h > hi()) return say('Задайте низ и высоту стойки в пределах внутренней высоты шкафа', true)
+          var part = { id: ++nid, sec: sec, x: Math.round(secX(sec) + (secW(sec) - T) / 2), y: y, h: h }
+          if (!tryChange(function () { posts.push(part) }, function () { posts.pop() }, 'Стойка пересекает деталь или сужает проём')) return
+          hl = part.id; all(); return say('Частичная стойка добавлена')
+        }
         if (secW(sec) < 2 * MIN + T) return say('Секция ' + (sec + 1) + ' слишком узкая для ещё одной стойки', true)
         var p = { id: ++nid, x: Math.round(secX(sec) + (secW(sec) - T) / 2) }
-        items.forEach(function (it) { if (it.sec > sec) it.sec++ })   // детали правее сдвигаются на одну секцию, в делимой остаются слева
-        verticalShelves.forEach(function (shelf) { if (shelf.sec > sec || (shelf.sec === sec && shelf.x > p.x)) shelf.sec++ })
-        posts.push(p); hl = p.id; all(); return say('Стойка встала в секцию ' + (sec + 1) + ', X ' + p.x + ' мм')
+        var located = items.concat(verticalShelves, posts).filter(function (it) { return it.sec != null })
+        var before = geometry(), originalOuter = baysBetween(sec, [])[0].key.split('/')
+        var localPlatesById = new Map(before.plates.map(function (plate) { return [String(plate.id), plate] }))
+        var previous = located.map(function (it) { return { sec: it.sec, bay: it.bay } })
+        if (!tryChange(function () {
+          located.forEach(function (it) {
+            if (it.sec > sec) { it.sec++; return }
+            if (it.sec !== sec) return
+            var plate = localPlatesById.get(String(it.id))
+            var goesRight = (plate ? plate.x : it.x) > p.x
+            if (it.bay) {
+              var sides = it.bay.split('/')
+              var anchor = localPlatesById.get(sides[0]) || localPlatesById.get(sides[1])
+              var rect = before.rects.get(it.id)
+              goesRight = anchor ? anchor.x > p.x : !!rect && rect.x + rect.w / 2 > p.x + T / 2
+              if (goesRight && sides[0] === originalOuter[0]) sides[0] = p.id
+              if (!goesRight && sides[1] === originalOuter[1]) sides[1] = p.id
+              it.bay = sides.join('/')
+            }
+            if (goesRight) it.sec++
+          })
+          posts.push(p)
+        }, function () {
+          posts.pop()
+          located.forEach(function (it, i) { Object.assign(it, previous[i]) })
+        }, 'Новая стойка пересекает деталь или меняет границы проёма ящика')) return
+        hl = p.id; all(); return say('Стойка встала в секцию ' + (sec + 1) + ', X ' + p.x + ' мм')
       }
       var it = { id: ++nid, t: t, sec: sec, y: 0, h: t === 'yaschik' ? Math.max(50, Math.round(num($('aDH').value, DH))) : 0, d: null, rod: t === 'shtanga' ? $('aRod').value : undefined }
-      if (t === 'yaschik') { it.slidesType = 'basic'; it.slideQty = 1 }
-      var want = num($('aY').value, null), y = want == null ? freeMid(it, sec) : fitY(it, Math.round(want), sec)
-      if (y == null) return say('В секции ' + (sec + 1) + ' нет места для: ' + NAMES[t].toLowerCase(), true)
-      it.y = y; items.push(it); hl = it.id; all()
+      if (t === 'yaschik') {
+        it.slidesType = 'basic'; it.slideQty = 1
+        it.bay = $('aBay').value || null
+        it.clearance = Math.max(0, Math.round(num($('aClearance').value, 0)))
+      }
+      var want = num($('aY').value, null), y = fitY(it, want == null ? null : Math.round(want), sec)
+      if (y == null) return say('Нет места для детали на выбранном уровне или в проёме', true)
+      it.y = y
+      if (!tryChange(function () { items.push(it) }, function () { items.pop() })) return
+      hl = it.id; all()
       say(NAMES[t] + ': секция ' + (sec + 1) + ', от пола ' + y + ' мм' + (want != null && y !== Math.round(want) ? ' (на ' + Math.round(want) + ' занято или выходит за габарит, ближайшее свободное место)' : ''))
     })
   })
-  $('aSec').addEventListener('change', function () { renderShelfGaps(); scheme() })
+  $('aSec').addEventListener('change', function () { renderShelfGaps(); renderBayOptions(); scheme() })
+  ;['aY', 'aDH', 'aClearance'].forEach(function (id) { $(id).addEventListener('input', function () { renderBayOptions(); scheme() }) })
+  $('aBay').addEventListener('change', function () { scheme() })
+  $('aPostY').value = lo()
+  $('aPostMode').addEventListener('change', function () { $('aPostFields').hidden = this.value !== 'partial' })
   $('aShelfGap').addEventListener('change', function () { scheme() })
 
   // ---------------- правки в таблице (по Enter или уходу из поля)
@@ -735,10 +1067,26 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     var el = e.target, tr = el.closest('tr'); if (!tr || !el.dataset.k) return
     var o = byId(+tr.dataset.id), k = el.dataset.k, v = num(el.value, null)
     if (k === 'q') { if (v != null) o.q = Math.max(0, Math.round(v)) }
-    else if (k === 'x') { if (v != null) { var nx = clampPost(o, Math.round(v)); if (nx !== Math.round(v)) say('Стойка: X ограничен соседями и шириной секции от ' + MIN + ' мм, стало ' + nx, true); o.x = nx } }
-    else if (k === 'sec') { var ny = fitY(o, o.y, +v); if (ny == null) say('В секции ' + (+v + 1) + ' нет места', true); else { o.sec = +v; o.y = ny } }
-    else if (k === 'y') { if (v != null) { var y = fitY(o, Math.round(v), o.sec); if (y == null) say('Нет места', true); else { if (y !== Math.round(v)) say('Высота ' + Math.round(v) + ' занята или за габаритом, стало ' + y, true); o.y = y } } }
-    else if (k === 'h') { if (v != null) { var old = o.h; o.h = Math.max(50, Math.round(v)); var y2 = fitY(o, o.y, o.sec); if (y2 == null) { o.h = old; say('Такой ящик не помещается', true) } else o.y = y2 } }
+    else if (k === 'x' && v != null) updateDetail(o, { x: o.h == null ? clampPost(o, Math.round(v)) : Math.round(v) })
+    else if ((k === 'postY' || k === 'postH' || k === 'clearance') && v != null) {
+      var field = k === 'postY' ? 'y' : k === 'postH' ? 'h' : 'clearance'
+      updateDetail(o, { [field]: k === 'clearance' ? Math.max(0, Math.round(v)) : Math.round(v) })
+    }
+    else if (k === 'bay') moveDrawer(o, function (bay) { return bay.value === el.value })
+    else if (k === 'sec' && o.t === 'yaschik' && o.bay) {
+      moveDrawer(o, function (bay) { return bay.sec === v })
+    }
+    else if (k === 'sec' || k === 'y' || k === 'h') {
+      if (v == null) return all()
+      var sec = k === 'sec' ? +v : o.sec, want = k === 'y' ? Math.round(v) : o.y
+      var h = k === 'h' ? Math.max(50, Math.round(v)) : o.h
+      var previousH = o.h
+      o.h = h
+      var y = fitY(o, want, sec)
+      o.h = previousH
+      if (y == null) say('Деталь не помещается в выбранном проёме', true)
+      else updateDetail(o, { sec: sec, y: y, h: h })
+    }
     else if (k === 'd') { if (v != null) o.d = Math.min(g.D, Math.max(50, Math.round(v))) }
     else if (k === 'rod') { o.rod = el.value }
     else if (k === 'slidesType') { o.slidesType = el.value }
@@ -749,24 +1097,66 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     var id = +button.closest('tr').dataset.id
     var active = document.activeElement
     if (touch && $('rows').contains(active) && active.matches('input, select')) active.blur()
-    var p = posts.filter(function (x) { return x.id === id })[0]
-    if (p) {   // убрали стойку: две секции сливаются в одну
-      var j = sorted().indexOf(p)
-      posts = posts.filter(function (x) { return x !== p })
-      items.forEach(function (it) { if (it.sec > j) it.sec-- })
-      verticalShelves.forEach(function (shelf) { if (shelf.sec > j) shelf.sec-- })
-      items.forEach(function (it) { if (it.sec === j) { var y = fitY(it, it.y, j); if (y != null) it.y = y } })
-    } else {
-      items = items.filter(function (x) { return x.id !== id })
-      corpus = corpus.filter(function (x) { return x.id !== id })
-      verticalShelves = verticalShelves.filter(function (x) { return x.id !== id })
-    }
+    var p = posts.find(function (x) { return x.id === id })
+    var oldPosts = posts, oldItems = items, oldCorpus = corpus, oldShelves = verticalShelves
+    var locations = items.concat(verticalShelves, posts).filter(function (it) { return it.sec != null })
+    var previous = locations.map(function (it) { return { sec: it.sec, y: it.y, bay: it.bay } })
+    tryChange(function () {
+      if (p && p.h == null) {
+        var full = sorted(), index = full.indexOf(p)
+        var left = index ? full[index - 1].id : 'left'
+        var right = full[index + 1] ? full[index + 1].id : 'right'
+        posts = posts.filter(function (x) { return x !== p })
+        locations.forEach(function (it) {
+          if (it.bay) {
+            var sides = it.bay.split('/')
+            if (sides[0] === String(p.id)) sides[0] = left
+            if (sides[1] === String(p.id)) sides[1] = right
+            it.bay = sides.join('/') === left + '/' + right ? null : sides.join('/')
+          }
+          if (it.sec > index) it.sec--
+        })
+        items.forEach(function (it) {
+          if (it.sec !== index || it.bay) return
+          var y = fitY(it, it.y, index)
+          if (y != null) it.y = y
+        })
+      } else {
+        posts = posts.filter(function (x) { return x.id !== id })
+        items = items.filter(function (x) { return x.id !== id })
+        corpus = corpus.filter(function (x) { return x.id !== id })
+        verticalShelves = verticalShelves.filter(function (x) { return x.id !== id })
+      }
+    }, function () {
+      posts = oldPosts; items = oldItems; corpus = oldCorpus; verticalShelves = oldShelves
+      locations.forEach(function (it, i) { Object.assign(it, previous[i]) })
+    }, 'Сначала уберите зависимые ящики или освободите место для деталей')
     all()
   })
 
   // ---------------- габариты, материал, наценка
   dimKeys.forEach(function (k) {
-    $(k).addEventListener('change', function () { g[k] = Math.round(Math.max(+this.min, Math.min(+this.max, num(this.value, g[k])))); this.value = g[k]; settle(); all() })
+    $(k).addEventListener('change', function () {
+      var value = Math.round(Math.max(+this.min, Math.min(+this.max, num(this.value, g[k]))))
+      g[k] = value
+      var full = sorted()
+      // If the cabinet cannot fit all full-height posts, keep their coordinates for recovery.
+      if (g.L >= (full.length + 1) * MIN + (full.length + 2) * T) {
+        var minimum = T + MIN
+        full.forEach(function (p, index) {
+          var maximum = g.L - T - (full.length - index) * (MIN + T)
+          p.x = Math.min(Math.max(p.x, minimum), maximum)
+          minimum = p.x + T + MIN
+        })
+      }
+      if (k === 'H') items.forEach(function (it) {
+        if (it.bay) return
+        var y = fitY(it, it.y, it.sec)
+        if (y != null) it.y = y
+      })
+      this.value = g[k]
+      all()
+    })
   })
   $('back').addEventListener('change', function () { back = this.checked; all() })
 
@@ -783,6 +1173,8 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     restoreBody()
     back = $('back').checked = $('back').defaultChecked
     $('aSec').value = '0'; $('aShelfGap').value = ''; $('aY').value = ''; $('aDH').value = DH; $('aRod').selectedIndex = 0
+    $('aBay').value = ''; $('aClearance').value = '0'; $('aPostMode').value = 'full'
+    $('aPostFields').hidden = true; $('aPostY').value = lo(); $('aPostH').value = ''
     $('body-status').textContent = ''; $('toast').textContent = ''; $('toast2').textContent = ''
     all()
   })
@@ -796,7 +1188,8 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
     var k = e.target.dataset.p; if (!k) return
     var v = num(e.target.value, null); if (v == null || v < 0) return
     PR[k] = v; $('psave').textContent = saveP() ? 'Сохранено в этом браузере' : 'Не сохранилось (браузер запрещает), но расчёт обновлён'
-    renderRows(); renderTotals()
+    var model = geometry()
+    renderRows(model); renderTotals(model)
   })
   $('preset').addEventListener('click', function () { defaults(); try { localStorage.removeItem(KEY) } catch (e) {} renderPrices(); all(); $('psave').textContent = 'Вернули исходные цены' })
   renderPrices()
@@ -812,7 +1205,7 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
       if (s) {
         $('aSec').value = s.dataset.sec
         var position = closestShelfPosition(shelfSpans(+s.dataset.sec), mm(e).y)
-        renderShelfGaps(position && position.gap.y); scheme()
+        renderShelfGaps(position && position.gap.y); renderBayOptions(); scheme()
       }
       return
     }
@@ -836,7 +1229,10 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
   $('svg').addEventListener('pointermove', function (e) {
     if (!drag || e.pointerId !== drag.pointerId) return
     var m = mm(e)
-    if (drag.post) drag.post.x = clampPost(drag.post, Math.round(m.x - drag.off))
+    if (drag.post) {
+      var x = Math.round(m.x - drag.off)
+      updateDetail(drag.post, { x: drag.post.h == null ? clampPost(drag.post, x) : x })
+    }
     else if (drag.shelf) {
       var dx = m.x - drag.start.x, dy = m.y - drag.start.y
       if (!drag.axis) {
@@ -849,37 +1245,39 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
       if (drag.axis === 'x') {
         var slot = shelfSlots(sec, active.span.gap, others).find(function (s) { return s.from <= active.span.x && active.span.x <= s.to })
         if (!slot) return
-        drag.shelf.x = Math.min(Math.max(drag.x + Math.round(dx), slot.from), slot.to)
-        drag.shelf.y = active.span.y
+        updateDetail(drag.shelf, { x: Math.min(Math.max(drag.x + Math.round(dx), slot.from), slot.to), y: active.span.y })
       } else {
         var gaps = shelfSpans(sec).filter(function (gap) {
           return shelfSlots(sec, gap, others).some(function (s) { return s.from <= drag.x && drag.x <= s.to })
         })
         var target = closestShelfPosition(gaps, drag.y + Math.round(dy))
         if (!target) return
-        drag.shelf.x = drag.x; drag.shelf.y = target.y
-        renderShelfGaps(target.gap.y)
+        if (updateDetail(drag.shelf, { x: drag.x, y: target.y })) renderShelfGaps(target.gap.y)
       }
-      renderRows()
     }
-    else { var y = fitY(drag.item, Math.round(m.y - drag.off), drag.item.sec); if (y != null) drag.item.y = y }
-    renderTotals(); scheme(drag)
+    else { var y = fitY(drag.item, Math.round(m.y - drag.off), drag.item.sec); if (y != null) updateDetail(drag.item, { y: y }) }
+    var model = geometry()
+    renderRows(model); renderTotals(model); scheme(drag, model)
   })
   function end(e) { if (!drag || e.pointerId !== drag.pointerId) return; drag = null; all() }
   $('svg').addEventListener('pointerup', end); $('svg').addEventListener('pointercancel', end); $('svg').addEventListener('lostpointercapture', end)
 
   // ---------------- копировать и печать
   function text() {
-    var t = totals(), out = ['Шкаф ' + g.L + ' × ' + g.H + ' × ' + g.D + ' мм, ЛДСП ' + T + ' мм' + (back ? ', задняя стенка ХДФ' : '') + ', секций ' + nSec(), '', 'Деталь\tПоложение\tРазмер, мм\tКол-во\tм²\tЦена']
-    rowsAll().forEach(function (r) {
+    var model = geometry(), t = totals(model)
+    if (t.shelfPending) return null
+    var out = ['Шкаф ' + g.L + ' × ' + g.H + ' × ' + g.D + ' мм, ЛДСП ' + T + ' мм' + (back ? ', задняя стенка ХДФ' : '') + ', секций ' + nSec(), '', 'Деталь\tПоложение\tРазмер, мм\tКол-во\tм²\tЦена']
+    rowsAll(model).forEach(function (r) {
       var s = size(r), l = line(r), it = r.ref
       var pos
       if (r.t === 'verticalShelf') pos = 'секция ' + (it.sec + 1) + ', ' + shelfPosition(r)
       else pos = r.t === 'stoyka' ? 'X ' + it.x : it ? 'секция ' + (it.sec + 1) + ', от пола ' + it.y + (r.t === 'shtanga' ? (it.rod === 'slide' ? ', выдвижная' : ', круглая') : '') : r.t === 'back' ? 'ХДФ' : 'корпус'
+      if (r.t === 'stoyka' && it.h != null) pos += ', низ от пола ' + it.y + ' мм'
+      if (r.t === 'yaschik' && r.rect) pos += ', от левого края ' + r.rect.x + ' мм, зазор на сторону ' + (it.clearance || 0) + ' мм'
       if (r.t === 'yaschik') pos += ', направляющие: ' + slideNames[it.slidesType].toLowerCase() + ', ' + it.slideQty + ' компл.'
-      out.push(NAMES[r.t] + '\t' + pos + '\t' + (s.join(' × ') || '—') + '\t' + r.q + '\t' + (l.ldsp + l.hdf ? m2f(l.ldsp + l.hdf) : '—') + '\t' + (r.t === 'verticalShelf' && !r.span ? '—' : rub(rowCost(l))))
+      out.push((r.t === 'stoyka' && it.h != null ? 'Частичная стойка' : NAMES[r.t]) + '\t' + pos + '\t' + (s.join(' × ') || '—') + '\t' + r.q + '\t' + (l.ldsp + l.hdf ? m2f(l.ldsp + l.hdf) : '—') + '\t' + (r.invalid ? '—' : rub(rowCost(l))))
     })
-    var lines = compartmentLines(shelfRows().filter(function (r) { return r.span }))
+    var lines = compartmentLines(model.plates.filter(function (p) { return !model.invalid.has(p.id) }))
     if (lines.length) {
       out.push('', 'Ширина отделений слева направо')
       lines.forEach(function (line) { out.push(compartmentPosition(line) + '\t' + line.widths.join(' / ') + ' мм') })
@@ -892,12 +1290,13 @@ details.parts ul { list-style:none; margin-top:4px; font-size:12.5px; color:var(
   function toast2(m) { $('toast2').textContent = m; setTimeout(function () { $('toast2').textContent = '' }, 2500) }
   $('copy').addEventListener('click', function () {
     var s = text()
+    if (s == null) return
     var fb = function () { var ta = document.createElement('textarea'); ta.value = s; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); toast2('Скопировано') } catch (e) { toast2('Не удалось скопировать') } ta.remove() }
     if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(s).then(function () { toast2('Скопировано, можно вставить в Excel или мессенджер') }, fb); else fb()
   })
-  $('print').addEventListener('click', function () { window.print() })
+  $('print').addEventListener('click', function () { if (!geometry().invalid.size) window.print() })
 
-  window.__shkaf = { PR: PR, setBack: function (v) { back = v; all() }, g: g, posts: function () { return sorted() }, items: function () { return items }, totals: totals, secW: secW, text: text }   // для проверки
+  window.__shkaf = { PR: PR, setBack: function (v) { back = v; all() }, g: g, posts: function () { return sorted() }, items: function () { return items }, totals: totals, secW: secW, text: text, geometry: geometry, rows: function () { return rowsAll(geometry()).map(function (r) { return { id: r.id, type: r.t, size: size(r), material: line(r), invalid: r.invalid } }) } }   // для проверки
   all()
 })()
 </script>
